@@ -1,0 +1,436 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using SimpleWorkflowEngine.DataModel;
+using SimpleWorkflowEngine.Models;
+using SimpleWorkflowEngine.Runtime;
+using SimpleWorkflowEngine.Service;
+using SimpleWorkflowEngine.Support;
+
+namespace SimpleWorkflowEngine.Engine
+{
+    /// <summary>
+    /// Core workflow execution engine that drives process instances.
+    /// </summary>
+    internal sealed class ExecutionEngine
+    {
+        private readonly WorkflowSystemContext _context;
+        private readonly IClock _clock;
+        private readonly TimerScheduler _scheduler;
+        private readonly IDictionary<int, List<ProcessModel>> _processesByVoucherKind;
+        private readonly IDictionary<int, ProcessModel> _processesById;
+        private readonly IList<IWorkflowMetadataLoader> _metadataLoaders;
+        private readonly IList<IProcessNodeExecutionHandler> _executionHandlers;
+        private IExpressionEvaluator _expressionEvaluator;
+        private IWorkflowLogger _logger;
+
+        public ExecutionEngine(WorkflowSystemContext context, IClock clock)
+        {
+            _context = context ?? throw new ArgumentNullException(nameof(context));
+            _clock = clock ?? throw new ArgumentNullException(nameof(clock));
+            _scheduler = new TimerScheduler(clock);
+            _processesByVoucherKind = new Dictionary<int, List<ProcessModel>>();
+            _processesById = new Dictionary<int, ProcessModel>();
+            _metadataLoaders = new List<IWorkflowMetadataLoader>();
+            _executionHandlers = new List<IProcessNodeExecutionHandler>();
+        }
+
+        public void RegisterMetadataLoader(IWorkflowMetadataLoader loader)
+        {
+            if (loader == null)
+            {
+                throw new ArgumentNullException(nameof(loader));
+            }
+
+            _metadataLoaders.Add(loader);
+        }
+
+        public void RegisterExecutionHandler(IProcessNodeExecutionHandler handler)
+        {
+            if (handler == null)
+            {
+                throw new ArgumentNullException(nameof(handler));
+            }
+
+            _executionHandlers.Add(handler);
+        }
+
+        public void RegisterExpressionEvaluator(IExpressionEvaluator evaluator)
+        {
+            _expressionEvaluator = evaluator ?? throw new ArgumentNullException(nameof(evaluator));
+        }
+
+        public void RegisterLogger(IWorkflowLogger logger)
+        {
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        }
+
+        public void LoadProcessDefinitions(IEnumerable<ProcessDefinition> definitions)
+        {
+            if (definitions == null)
+            {
+                throw new ArgumentNullException(nameof(definitions));
+            }
+
+            _processesByVoucherKind.Clear();
+            _processesById.Clear();
+
+            foreach (ProcessDefinition definition in definitions)
+            {
+                ProcessModel model = CompileProcess(definition);
+                if (!_processesByVoucherKind.TryGetValue(definition.VoucherKind, out List<ProcessModel> list))
+                {
+                    list = new List<ProcessModel>();
+                    _processesByVoucherKind.Add(definition.VoucherKind, list);
+                }
+
+                list.RemoveAll(existing => existing.Definition.Version == definition.Version);
+                list.Add(model);
+                list.Sort((left, right) => left.Definition.Version.CompareTo(right.Definition.Version));
+                _processesById[definition.Id] = model;
+
+                foreach (IWorkflowMetadataLoader loader in _metadataLoaders)
+                {
+                    loader.LoadMetadata(model.Nodes);
+                }
+            }
+        }
+
+        public void StartProcessInstance(int voucherKind, IInternalExecutionContext context)
+        {
+            ProcessModel process = GetActiveProcessModel(voucherKind);
+            ProcessInstanceRecord instance = _context.CreateInstance(process.Definition);
+            ExecuteNode(process, instance, process.StartNode, context, previousStep: null);
+        }
+
+        public IEnumerable<UserTaskNodeModel> GetPendingUserTasks(int voucherKind, int voucherId)
+        {
+            return _context.ExecutionSteps
+                .Where(step => !step.IsCompleted)
+                .Select(step => new
+                {
+                    Step = step,
+                    Instance = _context.GetInstance(step.ProcessInstanceId)
+                })
+                .Where(pair => pair.Instance.VoucherKind == voucherKind)
+                .Select(pair => new
+                {
+                    pair.Step,
+                    pair.Instance,
+                    Process = _processesById[pair.Instance.ProcessId]
+                })
+                .Where(pair => pair.Process.GetNode(pair.Step.NodeId) is UserTaskNodeModel)
+                .Select(pair => (UserTaskNodeModel)pair.Process.GetNode(pair.Step.NodeId))
+                .Distinct();
+        }
+
+        public void CompleteUserTask(Guid stepId, IInternalExecutionContext context)
+        {
+            ExecutionStepRecord step = _context.GetStep(stepId);
+            ProcessInstanceRecord instance = _context.GetInstance(step.ProcessInstanceId);
+            ProcessModel process = _processesById[instance.ProcessId];
+            ProcessNodeModel node = process.GetNode(step.NodeId);
+            if (!(node is UserTaskNodeModel))
+            {
+                throw new InvalidOperationException("The specified step does not belong to a user task node.");
+            }
+
+            FinalizeWaitingNode(process, instance, node, step, context);
+        }
+
+        public void ProcessDueTimers(DateTime? now = null)
+        {
+            DateTime timestamp = now ?? _clock.UtcNow;
+            foreach (TimerRequest request in _scheduler.CollectDueTimers(timestamp))
+            {
+                try
+                {
+                    ResumeTimer(request);
+                }
+                catch (Exception exception)
+                {
+                    _logger?.LogError(exception, $"Failed to resume timer for step {request.StepId}.");
+                }
+            }
+        }
+
+        private ProcessModel CompileProcess(ProcessDefinition definition)
+        {
+            var nodeLookup = new Dictionary<int, ProcessNodeModel>();
+            foreach (ProcessNodeDefinition nodeDefinition in definition.Nodes)
+            {
+                nodeLookup[nodeDefinition.Id] = CreateNodeModel(nodeDefinition);
+            }
+
+            foreach (ProcessNodeDefinition nodeDefinition in definition.Nodes)
+            {
+                ProcessNodeModel source = nodeLookup[nodeDefinition.Id];
+                foreach (TransitionDefinition transition in nodeDefinition.Transitions)
+                {
+                    ProcessNodeModel target = nodeLookup[transition.TargetNodeId];
+                    source.Transitions.Add(new NodeTransition(target, transition.Condition));
+                    target.PreviousNodes.Add(source);
+                }
+            }
+
+            return new ProcessModel(definition, nodeLookup.Values);
+        }
+
+        private ProcessNodeModel CreateNodeModel(ProcessNodeDefinition definition)
+        {
+            switch (definition.Kind)
+            {
+                case ProcessNodeKind.StartEvent:
+                    return new StartEventNodeModel(definition, _clock);
+                case ProcessNodeKind.EndEvent:
+                    return new EndEventNodeModel(definition, _clock);
+                case ProcessNodeKind.UserTask:
+                    return new UserTaskNodeModel(definition, _clock);
+                case ProcessNodeKind.ServiceTask:
+                    return new ServiceTaskNodeModel(definition, _clock);
+                case ProcessNodeKind.Timer:
+                    return new TimerNodeModel(definition, _clock);
+                default:
+                    throw new InvalidOperationException(string.Format("Unsupported node kind '{0}'.", definition.Kind));
+            }
+        }
+
+        private ProcessModel GetActiveProcessModel(int voucherKind)
+        {
+            if (!_processesByVoucherKind.TryGetValue(voucherKind, out List<ProcessModel> list) || list.Count == 0)
+            {
+                throw new InvalidOperationException($"No process definitions were loaded for voucher kind {voucherKind}.");
+            }
+
+            ProcessModel activeProcess = list.LastOrDefault(model => model.Definition.IsActive);
+            if (activeProcess == null)
+            {
+                throw new InvalidOperationException($"No active process definition was found for voucher kind {voucherKind}.");
+            }
+
+            return activeProcess;
+        }
+
+        private void ExecuteNode(ProcessModel process, ProcessInstanceRecord instance, ProcessNodeModel node, IInternalExecutionContext context, ExecutionStepRecord previousStep = null)
+        {
+            foreach (IProcessNodeExecutionHandler handler in _executionHandlers)
+            {
+                handler.Register(context, node);
+            }
+
+            ExecutionStepRecord step = node.CreateStep(instance, context);
+            if (previousStep != null)
+            {
+                step.PreviousStepIds.Add(previousStep.Id);
+                step.PathId = previousStep.PathId;
+            }
+
+            step.CreatedOnUtc = _clock.UtcNow;
+            _context.AddStep(step);
+            context.StepId = step.Id;
+
+            foreach (IProcessNodeExecutionHandler handler in _executionHandlers)
+            {
+                handler.Execute(context, node);
+            }
+
+            NodeContinuation continuation = node.Continue(instance, context, step, new ExecutionStepRecord[0]);
+            if (continuation.StepCompleted && !step.IsCompleted)
+            {
+                step.IsCompleted = true;
+                step.CompletedOnUtc = _clock.UtcNow;
+            }
+
+            ProcessNodeModel nextNode = continuation.NextNode ?? ResolveNextNode(node, context);
+
+            if (continuation.WaitForExternalSignal)
+            {
+                if (node is TimerNodeModel timerNode)
+                {
+                    ScheduleTimer(instance, timerNode, step, context);
+                }
+
+                return;
+            }
+
+            if (nextNode != null)
+            {
+                ExecuteNode(process, instance, nextNode, context, step);
+            }
+        }
+
+        private void ScheduleTimer(ProcessInstanceRecord instance, TimerNodeModel timerNode, ExecutionStepRecord step, IInternalExecutionContext context)
+        {
+            DateTime dueDate = timerNode.EvaluateDueDate(context);
+            var request = new TimerRequest
+            {
+                StepId = step.Id,
+                ProcessInstanceId = instance.Id,
+                NodeId = timerNode.Id,
+                ExecuteAtUtc = dueDate,
+                UserId = context.UserId,
+                CompanyId = context.CompanyId,
+                FiscalYearId = context.FiscalYearId,
+                VoucherId = context.Voucher.Id,
+                VoucherKind = context.Voucher.Kind,
+                WorkflowData = context.WorkflowData != null
+                    ? context.WorkflowData.Select(item => new WorkflowMetadata(item.Key, item.Value)).ToArray()
+                    : new WorkflowMetadata[0]
+            };
+            _scheduler.Enqueue(request);
+        }
+
+        private void ResumeTimer(TimerRequest request)
+        {
+            ExecutionStepRecord step = _context.GetStep(request.StepId);
+            ProcessInstanceRecord instance = _context.GetInstance(request.ProcessInstanceId);
+            ProcessModel process = _processesById[instance.ProcessId];
+            ProcessNodeModel node = process.GetNode(request.NodeId);
+            if (!(node is TimerNodeModel))
+            {
+                throw new InvalidOperationException("Timer scheduler attempted to resume a non-timer node.");
+            }
+
+            var voucher = new WorkflowVoucher(request.VoucherId, request.VoucherKind);
+            var resumeContext = new ExecutionContext(request.UserId, request.CompanyId, request.FiscalYearId, voucher)
+            {
+                WorkflowData = request.WorkflowData,
+                StepId = request.StepId
+            };
+
+            FinalizeWaitingNode(process, instance, node, step, resumeContext);
+        }
+
+        private void FinalizeWaitingNode(ProcessModel process, ProcessInstanceRecord instance, ProcessNodeModel node, ExecutionStepRecord step, IInternalExecutionContext context)
+        {
+            step.IsCompleted = true;
+            step.CompletedOnUtc = _clock.UtcNow;
+            ProcessNodeModel nextNode = ResolveNextNode(node, context);
+            if (nextNode != null)
+            {
+                ExecuteNode(process, instance, nextNode, context, step);
+            }
+        }
+
+        private ProcessNodeModel ResolveNextNode(ProcessNodeModel node, IInternalExecutionContext context)
+        {
+            if (node.Transitions.Count == 0)
+            {
+                return null;
+            }
+
+            if (node.Transitions.Count == 1)
+            {
+                return node.Transitions[0].Target;
+            }
+
+            foreach (NodeTransition transition in node.Transitions)
+            {
+                if (string.IsNullOrWhiteSpace(transition.Condition))
+                {
+                    continue;
+                }
+
+                if (_expressionEvaluator != null && _expressionEvaluator.EvaluateCondition(context, transition.Condition))
+                {
+                    return transition.Target;
+                }
+            }
+
+            NodeTransition defaultTransition = node.Transitions.FirstOrDefault(transition => string.IsNullOrWhiteSpace(transition.Condition));
+            return defaultTransition?.Target;
+        }
+
+        private sealed class TimerScheduler
+        {
+            private readonly SortedSet<TimerRequest> _scheduledTimers;
+
+            public TimerScheduler(IClock clock)
+            {
+                _scheduledTimers = new SortedSet<TimerRequest>(TimerRequestComparer.Instance);
+            }
+
+            public void Enqueue(TimerRequest request)
+            {
+                if (request == null)
+                {
+                    throw new ArgumentNullException(nameof(request));
+                }
+
+                _scheduledTimers.Add(request);
+            }
+
+            public IReadOnlyList<TimerRequest> CollectDueTimers(DateTime timestamp)
+            {
+                var ready = new List<TimerRequest>();
+                while (_scheduledTimers.Count > 0)
+                {
+                    TimerRequest next = _scheduledTimers.Min;
+                    if (next.ExecuteAtUtc > timestamp)
+                    {
+                        break;
+                    }
+
+                    _scheduledTimers.Remove(next);
+                    ready.Add(next);
+                }
+
+                return ready;
+            }
+        }
+
+        private sealed class TimerRequestComparer : IComparer<TimerRequest>
+        {
+            public static readonly TimerRequestComparer Instance = new TimerRequestComparer();
+
+            public int Compare(TimerRequest x, TimerRequest y)
+            {
+                if (ReferenceEquals(x, y))
+                {
+                    return 0;
+                }
+
+                if (x is null)
+                {
+                    return -1;
+                }
+
+                if (y is null)
+                {
+                    return 1;
+                }
+
+                int result = x.ExecuteAtUtc.CompareTo(y.ExecuteAtUtc);
+                if (result != 0)
+                {
+                    return result;
+                }
+
+                return x.StepId.CompareTo(y.StepId);
+            }
+        }
+
+        private sealed class TimerRequest
+        {
+            public Guid StepId { get; set; }
+
+            public int ProcessInstanceId { get; set; }
+
+            public int NodeId { get; set; }
+
+            public DateTime ExecuteAtUtc { get; set; }
+
+            public int UserId { get; set; }
+
+            public int CompanyId { get; set; }
+
+            public int FiscalYearId { get; set; }
+
+            public int VoucherId { get; set; }
+
+            public int VoucherKind { get; set; }
+
+            public IReadOnlyList<WorkflowMetadata> WorkflowData { get; set; } = new WorkflowMetadata[0];
+        }
+    }
+}
