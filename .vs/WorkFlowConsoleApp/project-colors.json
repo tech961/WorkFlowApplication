@@ -1,0 +1,16 @@
+{
+  "Version": 1,
+  "ProjectMap": {
+    "282b20b5-32a7-43c8-88dc-74dade529534": {
+      "ProjectGuid": "282b20b5-32a7-43c8-88dc-74dade529534",
+      "DisplayName": "WorkFlowConsoleApp",
+      "ColorIndex": 0
+    },
+    "3677ab45-8cb0-4f9e-bd5e-7bbf6b9250d2": {
+      "ProjectGuid": "3677ab45-8cb0-4f9e-bd5e-7bbf6b9250d2",
+      "DisplayName": "SimpleWorkflowEngine",
+      "ColorIndex": 1
+    }
+  },
+  "NextColorIndex": 2
+}

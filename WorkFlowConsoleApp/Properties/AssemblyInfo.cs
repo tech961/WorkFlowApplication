@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("WorkFlowConsoleApp")]
+[assembly: AssemblyTitle("TestConsoleApp")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("WorkFlowConsoleApp")]
+[assembly: AssemblyProduct("TestConsoleApp")]
 [assembly: AssemblyCopyright("Copyright ©  2025")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("282b20b5-32a7-43c8-88dc-74dade529534")]
+[assembly: Guid("8c0aa06d-fe01-4274-9d47-52df20bfd2ca")]
 
 // Version information for an assembly consists of the following four values:
 //
