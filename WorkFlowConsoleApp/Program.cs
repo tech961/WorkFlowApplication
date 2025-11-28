@@ -2,7 +2,7 @@
 using System.Configuration;
 using System.Collections.Generic;
 using System.Linq;
-using SimpleWorkflowEngine.DataModel;
+using SimpleWorkflowEngine.EntityModels;
 using SimpleWorkflowEngine.Models;
 using SimpleWorkflowEngine.Runtime;
 using SimpleWorkflowEngine.Service;
@@ -59,7 +59,7 @@ namespace WorkFlowConsoleApp
             }
             Console.WriteLine();
 
-            ProcessDefinition processDefinition = CreateSampleProcess();
+            Process processDefinition = CreateSampleProcess();
             workflowService.Context.AddProcess(processDefinition);
 
             workflowService.RegisterProcessNodeExecutionHandler(new DefaultProcessNodeExecutionHandler());
@@ -69,8 +69,8 @@ namespace WorkFlowConsoleApp
             workflowService.InitializeEngine();
 
             Console.WriteLine($" Process '{processDefinition.Name}' اضافه شد");
-            Console.WriteLine($"  - Process ID: {processDefinition.Id}");
-            Console.WriteLine($"  - Voucher Kind: {processDefinition.VoucherKind}");
+            Console.WriteLine($"  - Process ID: {processDefinition.ID}");
+            Console.WriteLine($"  - Voucher Kind: {processDefinition.VoucherKindID}");
             Console.WriteLine($"  - Nodes: {processDefinition.Nodes.Count}");
             Console.WriteLine();
 
@@ -153,37 +153,52 @@ namespace WorkFlowConsoleApp
             Console.ReadKey();
         }
 
-        static ProcessDefinition CreateSampleProcess()
+        static Process CreateSampleProcess()
         {
-            ProcessDefinition process = new ProcessDefinition(
-                id: 1,
-                name: "فرآیند تایید نمونه",
-                voucherKind: 1,
-                version: 1,
-                isActive: true
-            );
+            var process = new Process
+            {
+                ID = 1,
+                Name = "فرآیند تایید نمونه",
+                VoucherKindID = 1,
+                Version = 1,
+                Active = true
+            };
 
-            ProcessNodeDefinition startNode = new ProcessNodeDefinition(
-                id: 10,
-                name: "شروع",
-                kind: ProcessNodeKind.StartEvent
-            );
-            startNode.AddTransition(targetNodeId: 20); 
+            var startNode = new ProcessNode
+            {
+                ID = 10,
+                Name = "شروع",
+                ProcessID = process.ID,
+                NodeKindID = (int)ProcessNodeType.StartEvent,
+                NodeKind = new ProcessNodeKind { ID = 1, Name = "Start", Type = ProcessNodeType.StartEvent },
+                NextProcessNodeID = 20
+            };
+
+            var userTaskNode = new ProcessNode
+            {
+                ID = 20,
+                Name = "تایید توسط کاربر",
+                ProcessID = process.ID,
+                NodeKindID = (int)ProcessNodeType.UserTask,
+                NodeKind = new ProcessNodeKind { ID = 2, Name = "UserTask", Type = ProcessNodeType.UserTask },
+                NextProcessNodeID = 30
+            };
+            userTaskNode.Settings["registrationType"] = "default";
+
+            var endNode = new ProcessNode
+            {
+                ID = 30,
+                Name = "پایان",
+                ProcessID = process.ID,
+                NodeKindID = (int)ProcessNodeType.EndEvent,
+                NodeKind = new ProcessNodeKind { ID = 3, Name = "End", Type = ProcessNodeType.EndEvent }
+            };
+
+            startNode.NextProcessNode = userTaskNode;
+            userTaskNode.NextProcessNode = endNode;
+
             process.Nodes.Add(startNode);
-
-            ProcessNodeDefinition userTaskNode = new ProcessNodeDefinition(
-                id: 20,
-                name: "تایید توسط کاربر",
-                kind: ProcessNodeKind.UserTask
-            );
-            userTaskNode.AddTransition(targetNodeId: 30);
             process.Nodes.Add(userTaskNode);
-
-            ProcessNodeDefinition endNode = new ProcessNodeDefinition(
-                id: 30,
-                name: "پایان",
-                kind: ProcessNodeKind.EndEvent
-            );
             process.Nodes.Add(endNode);
 
             return process;

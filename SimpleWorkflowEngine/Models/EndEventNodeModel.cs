@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using SimpleWorkflowEngine.DataModel;
+using SimpleWorkflowEngine.EntityModels;
 using SimpleWorkflowEngine.Runtime;
 using SimpleWorkflowEngine.Support;
 
@@ -7,12 +7,12 @@ namespace SimpleWorkflowEngine.Models
 {
     public sealed class EndEventNodeModel : ProcessNodeModel
     {
-        public EndEventNodeModel(ProcessNodeDefinition definition, IClock clock)
+        public EndEventNodeModel(ProcessNode definition, IClock clock)
             : base(definition, clock)
         {
         }
 
-        public override NodeContinuation Continue(ProcessInstanceRecord instance, IInternalExecutionContext context, ExecutionStepRecord currentStep, IReadOnlyList<ExecutionStepRecord> previousSteps)
+        public override NodeContinuation Continue(ProcessInstance instance, IInternalExecutionContext context, ProcessExecutionStep currentStep, IReadOnlyList<ProcessExecutionStep> previousSteps)
         {
             currentStep.IsCompleted = true;
             currentStep.CompletedOnUtc = Clock.UtcNow;

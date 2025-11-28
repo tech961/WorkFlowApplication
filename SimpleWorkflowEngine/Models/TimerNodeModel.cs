@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using SimpleWorkflowEngine.DataModel;
+using SimpleWorkflowEngine.EntityModels;
 using SimpleWorkflowEngine.Runtime;
 using SimpleWorkflowEngine.Support;
 
@@ -10,7 +10,7 @@ namespace SimpleWorkflowEngine.Models
     {
         private const string DelayExpressionKey = "delay";
 
-        public TimerNodeModel(ProcessNodeDefinition definition, IClock clock)
+        public TimerNodeModel(ProcessNode definition, IClock clock)
             : base(definition, clock)
         {
             DelayExpression = definition.Settings.TryGetValue(DelayExpressionKey, out string value)
@@ -20,14 +20,14 @@ namespace SimpleWorkflowEngine.Models
 
         public string DelayExpression { get; }
 
-        public override ExecutionStepRecord CreateStep(ProcessInstanceRecord instance, IExecutionContext context)
+        public override ProcessExecutionStep CreateStep(ProcessInstance instance, IExecutionContext context)
         {
-            ExecutionStepRecord step = base.CreateStep(instance, context);
+            ProcessExecutionStep step = base.CreateStep(instance, context);
             step.Metadata["DelayExpression"] = DelayExpression;
             return step;
         }
 
-        public override NodeContinuation Continue(ProcessInstanceRecord instance, IInternalExecutionContext context, ExecutionStepRecord currentStep, IReadOnlyList<ExecutionStepRecord> previousSteps)
+        public override NodeContinuation Continue(ProcessInstance instance, IInternalExecutionContext context, ProcessExecutionStep currentStep, IReadOnlyList<ProcessExecutionStep> previousSteps)
         {
             DateTime dueDate = EvaluateDueDate(context);
             currentStep.Metadata["DueDateUtc"] = dueDate;
