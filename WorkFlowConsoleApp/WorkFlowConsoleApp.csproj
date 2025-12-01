@@ -59,12 +59,6 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\SimpleWorkflowEngine\SimpleWorkflowEngine.csproj">
-      <Project>{3677AB45-8CB0-4F9E-BD5E-7BBF6B9250D2}</Project>
-      <Name>SimpleWorkflowEngine</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <PackageReference Include="Dapper" Version="2.1.35" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

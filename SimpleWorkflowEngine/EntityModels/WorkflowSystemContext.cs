@@ -1,0 +1,378 @@
+using System;
+using System.Collections.Generic;
+using System.Data.Entity;
+using System.Globalization;
+using System.Linq;
+using HrgWeb.Business.WorkflowEngine.Context;
+
+namespace HrgWeb.Business.WorkflowEngine.EntityModels
+{
+    public sealed class WorkflowSystemContext
+    {
+        private readonly HrgWebDevEntities _dbContext;
+        private readonly IList<Process> _processes;
+
+        public WorkflowSystemContext()
+            : this("name=HrgWebDevEntities")
+        {
+        }
+
+        public WorkflowSystemContext(string connectionString)
+        {
+            _dbContext = new HrgWebDevEntities(connectionString);
+            _processes = LoadProcessesFromDatabase();
+        }
+
+        public IEnumerable<Process> Processes => _processes;
+
+        public IEnumerable<ProcessInstance> ProcessInstances => _dbContext.WF_Process_m.ToList().Select(MapProcessInstance);
+
+        public IEnumerable<ProcessExecutionStep> ExecutionSteps => _dbContext.WF_ProcessExecutionStep_m.ToList().Select(MapExecutionStep);
+
+        public void AddProcess(Process process)
+        {
+            if (process == null)
+            {
+                throw new ArgumentNullException(nameof(process));
+            }
+
+            _processes.Add(process);
+        }
+
+        public ProcessInstance CreateInstance(Process process)
+        {
+            if (process == null)
+            {
+                throw new ArgumentNullException(nameof(process));
+            }
+
+            var instanceEntity = new WF_Process_m
+            {
+                ProcessMetaDataID = process.ID,
+                VoucherRowID = process.VoucherKindID,
+                Closed = false,
+                RegUserID = process.RegUserID,
+                RegDate = DateTime.UtcNow.ToString("O", CultureInfo.InvariantCulture),
+                RegCompanyID = process.RegCompanyID
+            };
+
+            _dbContext.WF_Process_m.Add(instanceEntity);
+            _dbContext.SaveChanges();
+
+            return MapProcessInstance(instanceEntity);
+        }
+
+        public ProcessInstance GetInstance(int instanceId)
+        {
+            WF_Process_m instance = _dbContext.WF_Process_m.SingleOrDefault(record => record.ID == instanceId);
+            if (instance == null)
+            {
+                throw new InvalidOperationException($"Process instance '{instanceId}' was not found.");
+            }
+
+            return MapProcessInstance(instance);
+        }
+
+        public ProcessExecutionStep AddStep(ProcessExecutionStep step)
+        {
+            if (step == null)
+            {
+                throw new ArgumentNullException(nameof(step));
+            }
+
+            var entity = new WF_ProcessExecutionStep_m
+            {
+                ID = step.ID,
+                ProcessID = step.ProcessInstanceId,
+                ProcessNodeID = step.ProcessNodeID,
+                PathID = step.PathID,
+                Done = step.Done,
+                RegisterDateTime = step.RegisterDateTime,
+                DoneDateTime = step.DoneDateTime,
+                PreviousExecutionStepID = string.Join(",", step.PreviousStepIds ?? Array.Empty<Guid>()),
+                Data = step.Data,
+                RegUserID = step.RegUserID,
+                RegDate = step.RegDate.ToString("O", CultureInfo.InvariantCulture),
+                ModifyUserID = step.ModifyUserID,
+                ModifyDate = step.ModifyDate?.ToString("O", CultureInfo.InvariantCulture),
+                RegCompanyID = step.RegCompanyID
+            };
+
+            _dbContext.WF_ProcessExecutionStep_m.Add(entity);
+            _dbContext.SaveChanges();
+
+            return MapExecutionStep(entity);
+        }
+
+        public ProcessExecutionStep GetStep(Guid stepId)
+        {
+            WF_ProcessExecutionStep_m step = _dbContext.WF_ProcessExecutionStep_m.SingleOrDefault(record => record.ID == stepId);
+            if (step == null)
+            {
+                throw new InvalidOperationException($"Execution step '{stepId}' was not found.");
+            }
+
+            return MapExecutionStep(step);
+        }
+
+        public IEnumerable<ProcessExecutionStep> GetStepsForInstance(int instanceId)
+        {
+            return _dbContext.WF_ProcessExecutionStep_m
+                .Where(step => step.ProcessID == instanceId)
+                .ToList()
+                .Select(MapExecutionStep);
+        }
+
+        public void UpdateStep(ProcessExecutionStep step)
+        {
+            if (step == null)
+            {
+                throw new ArgumentNullException(nameof(step));
+            }
+
+            WF_ProcessExecutionStep_m entity = _dbContext.WF_ProcessExecutionStep_m.SingleOrDefault(record => record.ID == step.ID);
+            if (entity == null)
+            {
+                throw new InvalidOperationException($"Execution step '{step.ID}' was not found for update.");
+            }
+
+            entity.Done = step.IsCompleted;
+            entity.DoneDateTime = step.DoneDateTime ?? step.CompletedOnUtc?.Ticks;
+            entity.PreviousExecutionStepID = string.Join(",", step.PreviousStepIds ?? Array.Empty<Guid>());
+            entity.Data = step.Data;
+            entity.ModifyUserID = step.ModifyUserID;
+            entity.ModifyDate = (step.ModifyDate ?? step.CompletedOnUtc)?.ToString("O", CultureInfo.InvariantCulture);
+            entity.RegisterDateTime = step.RegisterDateTime;
+            entity.PathID = step.PathID;
+            entity.ProcessNodeID = step.ProcessNodeID;
+            entity.ProcessID = step.ProcessInstanceId;
+
+            _dbContext.SaveChanges();
+        }
+
+        private IList<Process> LoadProcessesFromDatabase()
+        {
+            var processes = _dbContext.MD_Process_m
+                .Include(process => process.MD_ProcessNode_m.Select(node => node.MD_ForkNextProcessNode_m))
+                .Include(process => process.MD_ProcessNode_m.Select(node => node.MD_ProcessNodeKind_h))
+                .Include(process => process.MD_ProcessNode_m.Select(node => node.MD_UserTaskNode_m.MD_UserTaskRegistrationType_h))
+                .Include(process => process.MD_ProcessNode_m.Select(node => node.MD_TimerNode_m))
+                .Include(process => process.MD_ProcessNode_m.Select(node => node.MD_ServiceTaskNode_m))
+                .Include(process => process.MD_VoucherKind_h)
+                .ToList();
+
+            var result = new List<Process>();
+            foreach (MD_Process_m dbProcess in processes)
+            {
+                result.Add(MapProcess(dbProcess));
+            }
+
+            return result;
+        }
+
+        private Process MapProcess(MD_Process_m dbProcess)
+        {
+            var process = new Process
+            {
+                ID = dbProcess.ID,
+                Name = dbProcess.Name,
+                VoucherKindID = dbProcess.VoucherKindID,
+                Version = dbProcess.Version,
+                Active = dbProcess.Active,
+                RegUserID = dbProcess.RegUserID,
+                RegDate = ParseDate(dbProcess.RegDate) ?? DateTime.UtcNow,
+                ModifyUserID = dbProcess.ModifyUserID,
+                ModifyDate = ParseDate(dbProcess.ModifyDate),
+                RegCompanyID = dbProcess.RegCompanyID,
+                VoucherKind = MapVoucherKind(dbProcess.MD_VoucherKind_h)
+            };
+
+            var nodeLookup = new Dictionary<int, ProcessNode>();
+            foreach (MD_ProcessNode_m dbNode in dbProcess.MD_ProcessNode_m)
+            {
+                ProcessNode node = MapProcessNode(dbNode);
+                node.Process = process;
+                nodeLookup[node.ID] = node;
+                process.Nodes.Add(node);
+            }
+
+            foreach (ProcessNode node in nodeLookup.Values)
+            {
+                if (node.NextProcessNodeID.HasValue && nodeLookup.TryGetValue(node.NextProcessNodeID.Value, out ProcessNode next))
+                {
+                    node.NextProcessNode = next;
+                }
+            }
+
+            foreach (MD_ProcessNode_m dbNode in dbProcess.MD_ProcessNode_m)
+            {
+                ProcessNode node = nodeLookup[dbNode.ID];
+                foreach (MD_ForkNextProcessNode_m fork in dbNode.MD_ForkNextProcessNode_m)
+                {
+                    var transition = new ForkNextProcessNode
+                    {
+                        ID = fork.ID,
+                        ForkNodeID = fork.ForkNodeID,
+                        NextProcessNodeID = fork.NextProcessNodeID,
+                        Title = fork.Title,
+                        Condition = fork.Condition,
+                        DesignerLinkPath = fork.DesignerLinkPath,
+                        NextProcessNode = nodeLookup.TryGetValue(fork.NextProcessNodeID, out ProcessNode target) ? target : null
+                    };
+
+                    transition.ForkNode = new ForkNode()
+                    {
+                        ProcessNode = node
+                    };
+                    node.ForkNextProcessNodes.Add(transition);
+                }
+            }
+
+            return process;
+        }
+
+        private ProcessNode MapProcessNode(MD_ProcessNode_m dbNode)
+        {
+            var node = new ProcessNode
+            {
+                ID = dbNode.ID,
+                Name = dbNode.Name,
+                ProcessID = dbNode.ProcessID,
+                NodeKindID = dbNode.NodeKindID,
+                NextProcessNodeID = dbNode.NextProcessNodeID,
+                DesignerLocation = dbNode.DesignerLocation,
+                DesignerLinkPath = dbNode.DesignerLinkPath,
+                RegUserID = dbNode.RegUserID,
+                RegDate = ParseDate(dbNode.RegDate) ?? DateTime.UtcNow,
+                ModifyUserID = dbNode.ModifyUserID,
+                ModifyDate = ParseDate(dbNode.ModifyDate),
+                RegCompanyID = dbNode.RegCompanyID,
+                NodeKind = MapNodeKind(dbNode.MD_ProcessNodeKind_h)
+            };
+
+            if (dbNode.MD_TimerNode_m != null)
+            {
+                node.Settings["delay"] = dbNode.MD_TimerNode_m.DelayDateTimeExpression ?? string.Empty;
+            }
+
+            if (dbNode.MD_UserTaskNode_m != null)
+            {
+                node.Settings["registrationType"] = dbNode.MD_UserTaskNode_m.MD_UserTaskRegistrationType_h?.Name ?? string.Empty;
+            }
+
+            if (dbNode.MD_ServiceTaskNode_m != null)
+            {
+                node.Settings["metadata"] = dbNode.MD_ServiceTaskNode_m.Metadata ?? string.Empty;
+                node.Settings["serviceType"] = dbNode.MD_ServiceTaskNode_m.TypeId.ToString(CultureInfo.InvariantCulture);
+            }
+
+            return node;
+        }
+
+        private ProcessNodeKind MapNodeKind(MD_ProcessNodeKind_h dbKind)
+        {
+            if (dbKind == null)
+            {
+                return null;
+            }
+
+            return new ProcessNodeKind
+            {
+                ID = dbKind.ID,
+                Name = dbKind.Name,
+                Type = dbKind.Type.HasValue ? (ProcessNodeType?)dbKind.Type.Value : null,
+                TypeDesc = dbKind.TypeDesc,
+                Remark = dbKind.Remark
+            };
+        }
+
+        private VoucherKind MapVoucherKind(MD_VoucherKind_h dbVoucher)
+        {
+            if (dbVoucher == null)
+            {
+                return null;
+            }
+
+            return new VoucherKind
+            {
+                ID = dbVoucher.ID,
+                Name = dbVoucher.Name,
+                Remark = dbVoucher.Remark,
+                Type = dbVoucher.Type,
+                TypeDesc = dbVoucher.TypeDesc,
+                AttachFormUrlID = dbVoucher.AttachFormUrlID,
+                IconEnum = dbVoucher.IconEnum,
+                WorkSheetPermissionItemID = dbVoucher.WorkSheetPermissionItemID,
+                ServiceAssemblyName = dbVoucher.ServiceAssemblyName,
+                GetMethodName = dbVoucher.GetMethodName,
+                LatinName = dbVoucher.LatinName,
+                ClientCenter = dbVoucher.ClientCenter,
+                Company = dbVoucher.Company,
+                IsGoverment = dbVoucher.IsGoverment
+            };
+        }
+
+        private ProcessInstance MapProcessInstance(WF_Process_m entity)
+        {
+            return new ProcessInstance
+            {
+                ID = entity.ID,
+                ProcessID = entity.ProcessMetaDataID,
+                VoucherKindID = entity.VoucherRowID,
+                IsClosed = entity.Closed,
+            };
+        }
+
+        private ProcessExecutionStep MapExecutionStep(WF_ProcessExecutionStep_m entity)
+        {
+            var step = new ProcessExecutionStep
+            {
+                ID = entity.ID,
+                ProcessID = entity.ProcessID,
+                ProcessNodeID = entity.ProcessNodeID,
+                ProcessInstanceId = entity.ProcessID,
+                PathID = entity.PathID,
+                Done = entity.Done,
+                RegisterDateTime = entity.RegisterDateTime,
+                DoneDateTime = entity.DoneDateTime,
+                Data = entity.Data,
+                RegUserID = entity.RegUserID,
+                RegDate = ParseDate(entity.RegDate) ?? DateTime.UtcNow,
+                ModifyUserID = entity.ModifyUserID,
+                ModifyDate = ParseDate(entity.ModifyDate),
+                RegCompanyID = entity.RegCompanyID,
+                CreatedOnUtc = entity.RegisterDateTime > 0 ? new DateTime(entity.RegisterDateTime, DateTimeKind.Utc) : DateTime.MinValue,
+                CompletedOnUtc = entity.DoneDateTime.HasValue ? new DateTime(entity.DoneDateTime.Value, DateTimeKind.Utc) : (DateTime?)null,
+                IsCompleted = entity.Done
+            };
+
+            if (!string.IsNullOrWhiteSpace(entity.PreviousExecutionStepID))
+            {
+                foreach (string id in entity.PreviousExecutionStepID.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+                {
+                    if (Guid.TryParse(id, out Guid parsed))
+                    {
+                        step.PreviousStepIds.Add(parsed);
+                    }
+                }
+            }
+
+            return step;
+        }
+
+        private static DateTime? ParseDate(string dateValue)
+        {
+            if (string.IsNullOrWhiteSpace(dateValue))
+            {
+                return null;
+            }
+
+            if (DateTime.TryParse(dateValue, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out DateTime parsed))
+            {
+                return parsed;
+            }
+
+            return null;
+        }
+    }
+}

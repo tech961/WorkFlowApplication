@@ -1,0 +1,17 @@
+C:\Projects\Toli\HrgWebTolid\HrgWeb.Business.WorkflowEngine\bin\Debug\HrgWeb.Business.WorkflowEngine.dll.config
+C:\Projects\Toli\HrgWebTolid\HrgWeb.Business.WorkflowEngine\bin\Debug\HrgWeb.Business.WorkflowEngine.dll
+C:\Projects\Toli\HrgWebTolid\HrgWeb.Business.WorkflowEngine\bin\Debug\HrgWeb.Business.WorkflowEngine.pdb
+C:\Projects\Toli\HrgWebTolid\HrgWeb.Business.WorkflowEngine\bin\Debug\EntityFramework.dll
+C:\Projects\Toli\HrgWebTolid\HrgWeb.Business.WorkflowEngine\bin\Debug\EntityFramework.SqlServer.dll
+C:\Projects\Toli\HrgWebTolid\HrgWeb.Business.WorkflowEngine\bin\Debug\EntityFramework.xml
+C:\Projects\Toli\HrgWebTolid\HrgWeb.Business.WorkflowEngine\bin\Debug\EntityFramework.SqlServer.xml
+C:\Projects\Toli\HrgWebTolid\HrgWeb.Business.WorkflowEngine\obj\Debug\HrgWeb.Business.WorkflowEngine.csproj.AssemblyReference.cache
+C:\Projects\Toli\HrgWebTolid\HrgWeb.Business.WorkflowEngine\obj\Debug\HrgWeb.Business.WorkflowEngine.csproj.CoreCompileInputs.cache
+C:\Projects\Toli\HrgWebTolid\HrgWeb.Business.WorkflowEngine\obj\Debug\HrgWeb.Business.WorkflowEngine.csproj.CopyComplete
+C:\Projects\Toli\HrgWebTolid\HrgWeb.Business.WorkflowEngine\obj\Debug\HrgWeb.Business.WorkflowEngine.dll
+C:\Projects\Toli\HrgWebTolid\HrgWeb.Business.WorkflowEngine\obj\Debug\HrgWeb.Business.WorkflowEngine.pdb
+C:\Projects\Toli\HrgWebTolid\HrgWeb.Business.WorkflowEngine\bin\Debug\Microsoft.Practices.Unity.dll
+C:\Projects\Toli\HrgWebTolid\HrgWeb.Business.WorkflowEngine\bin\Debug\Microsoft.Practices.ServiceLocation.dll
+C:\Projects\Toli\HrgWebTolid\HrgWeb.Business.WorkflowEngine\bin\Debug\Microsoft.Practices.Unity.xml
+C:\Projects\Toli\HrgWebTolid\HrgWeb.Business.WorkflowEngine\bin\Debug\Microsoft.Practices.ServiceLocation.pdb
+C:\Projects\Toli\HrgWebTolid\HrgWeb.Business.WorkflowEngine\bin\Debug\Microsoft.Practices.ServiceLocation.xml
