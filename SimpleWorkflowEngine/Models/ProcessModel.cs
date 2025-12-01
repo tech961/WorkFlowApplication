@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using SimpleWorkflowEngine.DataModel;
+using SimpleWorkflowEngine.EntityModels;
 
 namespace SimpleWorkflowEngine.Models
 {
@@ -12,7 +12,7 @@ namespace SimpleWorkflowEngine.Models
     {
         private readonly Dictionary<int, ProcessNodeModel> _nodesById;
 
-        public ProcessModel(ProcessDefinition definition, IEnumerable<ProcessNodeModel> nodes)
+        public ProcessModel(Process definition, IEnumerable<ProcessNodeModel> nodes)
         {
             Definition = definition ?? throw new ArgumentNullException(nameof(definition));
             if (nodes == null)
@@ -31,7 +31,7 @@ namespace SimpleWorkflowEngine.Models
             StartNode = compiledNodes.OfType<StartEventNodeModel>().Single();
         }
 
-        public ProcessDefinition Definition { get; }
+        public Process Definition { get; }
 
         public IEnumerable<ProcessNodeModel> Nodes { get; }
 

@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using SimpleWorkflowEngine.DataModel;
+using SimpleWorkflowEngine.EntityModels;
 using SimpleWorkflowEngine.Models;
 using SimpleWorkflowEngine.Runtime;
 using SimpleWorkflowEngine.Service;
@@ -65,7 +65,7 @@ namespace SimpleWorkflowEngine.Engine
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public void LoadProcessDefinitions(IEnumerable<ProcessDefinition> definitions)
+        public void LoadProcessDefinitions(IEnumerable<Process> definitions)
         {
             if (definitions == null)
             {
@@ -75,19 +75,19 @@ namespace SimpleWorkflowEngine.Engine
             _processesByVoucherKind.Clear();
             _processesById.Clear();
 
-            foreach (ProcessDefinition definition in definitions)
+            foreach (Process definition in definitions)
             {
                 ProcessModel model = CompileProcess(definition);
-                if (!_processesByVoucherKind.TryGetValue(definition.VoucherKind, out List<ProcessModel> list))
+                if (!_processesByVoucherKind.TryGetValue(definition.VoucherKindID, out List<ProcessModel> list))
                 {
                     list = new List<ProcessModel>();
-                    _processesByVoucherKind.Add(definition.VoucherKind, list);
+                    _processesByVoucherKind.Add(definition.VoucherKindID, list);
                 }
 
                 list.RemoveAll(existing => existing.Definition.Version == definition.Version);
                 list.Add(model);
                 list.Sort((left, right) => left.Definition.Version.CompareTo(right.Definition.Version));
-                _processesById[definition.Id] = model;
+                _processesById[definition.ID] = model;
 
                 foreach (IWorkflowMetadataLoader loader in _metadataLoaders)
                 {
@@ -99,7 +99,7 @@ namespace SimpleWorkflowEngine.Engine
         public void StartProcessInstance(int voucherKind, IInternalExecutionContext context)
         {
             ProcessModel process = GetActiveProcessModel(voucherKind);
-            ProcessInstanceRecord instance = _context.CreateInstance(process.Definition);
+            ProcessInstance instance = _context.CreateInstance(process.Definition);
             ExecuteNode(process, instance, process.StartNode, context, previousStep: null);
         }
 
@@ -112,7 +112,7 @@ namespace SimpleWorkflowEngine.Engine
                     Step = step,
                     Instance = _context.GetInstance(step.ProcessInstanceId)
                 })
-                .Where(pair => pair.Instance.VoucherKind == voucherKind)
+                .Where(pair => pair.Instance.VoucherKindID == voucherKind)
                 .Select(pair => new
                 {
                     pair.Step,
@@ -126,8 +126,8 @@ namespace SimpleWorkflowEngine.Engine
 
         public void CompleteUserTask(Guid stepId, IInternalExecutionContext context)
         {
-            ExecutionStepRecord step = _context.GetStep(stepId);
-            ProcessInstanceRecord instance = _context.GetInstance(step.ProcessInstanceId);
+            ProcessExecutionStep step = _context.GetStep(stepId);
+            ProcessInstance instance = _context.GetInstance(step.ProcessInstanceId);
             ProcessModel process = _processesById[instance.ProcessId];
             ProcessNodeModel node = process.GetNode(step.NodeId);
             if (!(node is UserTaskNodeModel))
@@ -154,21 +154,31 @@ namespace SimpleWorkflowEngine.Engine
             }
         }
 
-        private ProcessModel CompileProcess(ProcessDefinition definition)
+        private ProcessModel CompileProcess(Process definition)
         {
             var nodeLookup = new Dictionary<int, ProcessNodeModel>();
-            foreach (ProcessNodeDefinition nodeDefinition in definition.Nodes)
+            foreach (ProcessNode nodeDefinition in definition.Nodes)
             {
-                nodeLookup[nodeDefinition.Id] = CreateNodeModel(nodeDefinition);
+                nodeLookup[nodeDefinition.ID] = CreateNodeModel(nodeDefinition);
             }
 
-            foreach (ProcessNodeDefinition nodeDefinition in definition.Nodes)
+            foreach (ProcessNode nodeDefinition in definition.Nodes)
             {
-                ProcessNodeModel source = nodeLookup[nodeDefinition.Id];
-                foreach (TransitionDefinition transition in nodeDefinition.Transitions)
+                ProcessNodeModel source = nodeLookup[nodeDefinition.ID];
+
+                if (nodeDefinition.ForkNextProcessNodes != null && nodeDefinition.ForkNextProcessNodes.Any())
                 {
-                    ProcessNodeModel target = nodeLookup[transition.TargetNodeId];
-                    source.Transitions.Add(new NodeTransition(target, transition.Condition));
+                    foreach (ForkNextProcessNode transition in nodeDefinition.ForkNextProcessNodes)
+                    {
+                        ProcessNodeModel target = nodeLookup[transition.NextProcessNodeID];
+                        source.Transitions.Add(new NodeTransition(target, transition.Condition));
+                        target.PreviousNodes.Add(source);
+                    }
+                }
+                else if (nodeDefinition.NextProcessNodeID.HasValue)
+                {
+                    ProcessNodeModel target = nodeLookup[nodeDefinition.NextProcessNodeID.Value];
+                    source.Transitions.Add(new NodeTransition(target, condition: null));
                     target.PreviousNodes.Add(source);
                 }
             }
@@ -176,22 +186,22 @@ namespace SimpleWorkflowEngine.Engine
             return new ProcessModel(definition, nodeLookup.Values);
         }
 
-        private ProcessNodeModel CreateNodeModel(ProcessNodeDefinition definition)
+        private ProcessNodeModel CreateNodeModel(ProcessNode definition)
         {
-            switch (definition.Kind)
+            switch (definition.NodeType)
             {
-                case ProcessNodeKind.StartEvent:
+                case ProcessNodeType.StartEvent:
                     return new StartEventNodeModel(definition, _clock);
-                case ProcessNodeKind.EndEvent:
+                case ProcessNodeType.EndEvent:
                     return new EndEventNodeModel(definition, _clock);
-                case ProcessNodeKind.UserTask:
+                case ProcessNodeType.UserTask:
                     return new UserTaskNodeModel(definition, _clock);
-                case ProcessNodeKind.ServiceTask:
+                case ProcessNodeType.ServiceTask:
                     return new ServiceTaskNodeModel(definition, _clock);
-                case ProcessNodeKind.Timer:
+                case ProcessNodeType.Timer:
                     return new TimerNodeModel(definition, _clock);
                 default:
-                    throw new InvalidOperationException(string.Format("Unsupported node kind '{0}'.", definition.Kind));
+                    throw new InvalidOperationException(string.Format("Unsupported node kind '{0}'.", definition.NodeType));
             }
         }
 
@@ -202,7 +212,7 @@ namespace SimpleWorkflowEngine.Engine
                 throw new InvalidOperationException($"No process definitions were loaded for voucher kind {voucherKind}.");
             }
 
-            ProcessModel activeProcess = list.LastOrDefault(model => model.Definition.IsActive);
+            ProcessModel activeProcess = list.LastOrDefault(model => model.Definition.Active);
             if (activeProcess == null)
             {
                 throw new InvalidOperationException($"No active process definition was found for voucher kind {voucherKind}.");
@@ -211,14 +221,14 @@ namespace SimpleWorkflowEngine.Engine
             return activeProcess;
         }
 
-        private void ExecuteNode(ProcessModel process, ProcessInstanceRecord instance, ProcessNodeModel node, IInternalExecutionContext context, ExecutionStepRecord previousStep = null)
+        private void ExecuteNode(ProcessModel process, ProcessInstance instance, ProcessNodeModel node, IInternalExecutionContext context, ProcessExecutionStep previousStep = null)
         {
             foreach (IProcessNodeExecutionHandler handler in _executionHandlers)
             {
                 handler.Register(context, node);
             }
 
-            ExecutionStepRecord step = node.CreateStep(instance, context);
+            ProcessExecutionStep step = node.CreateStep(instance, context);
             if (previousStep != null)
             {
                 step.PreviousStepIds.Add(previousStep.Id);
@@ -234,7 +244,7 @@ namespace SimpleWorkflowEngine.Engine
                 handler.Execute(context, node);
             }
 
-            NodeContinuation continuation = node.Continue(instance, context, step, new ExecutionStepRecord[0]);
+            NodeContinuation continuation = node.Continue(instance, context, step, new ProcessExecutionStep[0]);
             if (continuation.StepCompleted && !step.IsCompleted)
             {
                 step.IsCompleted = true;
@@ -259,7 +269,7 @@ namespace SimpleWorkflowEngine.Engine
             }
         }
 
-        private void ScheduleTimer(ProcessInstanceRecord instance, TimerNodeModel timerNode, ExecutionStepRecord step, IInternalExecutionContext context)
+        private void ScheduleTimer(ProcessInstance instance, TimerNodeModel timerNode, ProcessExecutionStep step, IInternalExecutionContext context)
         {
             DateTime dueDate = timerNode.EvaluateDueDate(context);
             var request = new TimerRequest
@@ -282,8 +292,8 @@ namespace SimpleWorkflowEngine.Engine
 
         private void ResumeTimer(TimerRequest request)
         {
-            ExecutionStepRecord step = _context.GetStep(request.StepId);
-            ProcessInstanceRecord instance = _context.GetInstance(request.ProcessInstanceId);
+            ProcessExecutionStep step = _context.GetStep(request.StepId);
+            ProcessInstance instance = _context.GetInstance(request.ProcessInstanceId);
             ProcessModel process = _processesById[instance.ProcessId];
             ProcessNodeModel node = process.GetNode(request.NodeId);
             if (!(node is TimerNodeModel))
@@ -301,7 +311,7 @@ namespace SimpleWorkflowEngine.Engine
             FinalizeWaitingNode(process, instance, node, step, resumeContext);
         }
 
-        private void FinalizeWaitingNode(ProcessModel process, ProcessInstanceRecord instance, ProcessNodeModel node, ExecutionStepRecord step, IInternalExecutionContext context)
+        private void FinalizeWaitingNode(ProcessModel process, ProcessInstance instance, ProcessNodeModel node, ProcessExecutionStep step, IInternalExecutionContext context)
         {
             step.IsCompleted = true;
             step.CompletedOnUtc = _clock.UtcNow;

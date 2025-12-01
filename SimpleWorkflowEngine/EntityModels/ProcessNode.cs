@@ -1,4 +1,5 @@
-﻿using System;
+using System;
+using System.Collections.Generic;
 
 namespace SimpleWorkflowEngine.EntityModels
 {
@@ -20,5 +21,11 @@ namespace SimpleWorkflowEngine.EntityModels
         public Process Process { get; set; }
         public ProcessNode NextProcessNode { get; set; }
         public ProcessNodeKind NodeKind { get; set; }
+
+        public ProcessNodeType NodeType => NodeKind?.Type ?? (ProcessNodeType)NodeKindID;
+
+        public IList<ForkNextProcessNode> ForkNextProcessNodes { get; set; } = new List<ForkNextProcessNode>();
+
+        public IDictionary<string, string> Settings { get; } = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
     }
 }

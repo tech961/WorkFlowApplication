@@ -42,13 +42,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Class1.cs" />
-    <Compile Include="DataModel\ExecutionStepRecord.cs" />
-    <Compile Include="DataModel\ProcessDefinition.cs" />
-    <Compile Include="DataModel\ProcessInstanceRecord.cs" />
-    <Compile Include="DataModel\ProcessNodeDefinition.cs" />
-    <Compile Include="DataModel\ProcessNodeKind.cs" />
-    <Compile Include="DataModel\TransitionDefinition.cs" />
-    <Compile Include="DataModel\WorkflowSystemContext.cs" />
     <Compile Include="Engine\ExecutionEngine.cs" />
     <Compile Include="EntityModels\EndEventNode.cs" />
     <Compile Include="EntityModels\ForkNode.cs" />
@@ -58,6 +51,9 @@
     <Compile Include="EntityModels\ProcessNode.cs" />
     <Compile Include="EntityModels\ProcessExecutionStep.cs" />
     <Compile Include="EntityModels\Process.cs" />
+    <Compile Include="EntityModels\ProcessInstance.cs" />
+    <Compile Include="EntityModels\ProcessNodeType.cs" />
+    <Compile Include="EntityModels\WorkflowSystemContext.cs" />
     <Compile Include="EntityModels\ServiceTaskNode.cs" />
     <Compile Include="EntityModels\StartEventNode.cs" />
     <Compile Include="EntityModels\TimerNode.cs" />

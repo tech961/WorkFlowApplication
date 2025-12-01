@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using SimpleWorkflowEngine.DataModel;
+using SimpleWorkflowEngine.EntityModels;
 using SimpleWorkflowEngine.Runtime;
 using SimpleWorkflowEngine.Support;
 
@@ -12,7 +12,7 @@ namespace SimpleWorkflowEngine.Models
     /// </summary>
     public abstract class ProcessNodeModel
     {
-        protected ProcessNodeModel(ProcessNodeDefinition definition, IClock clock)
+        protected ProcessNodeModel(ProcessNode definition, IClock clock)
         {
             Definition = definition ?? throw new ArgumentNullException(nameof(definition));
             Clock = clock ?? throw new ArgumentNullException(nameof(clock));
@@ -21,15 +21,15 @@ namespace SimpleWorkflowEngine.Models
             Metadata = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
         }
 
-        protected ProcessNodeDefinition Definition { get; }
+        protected ProcessNode Definition { get; }
 
         protected IClock Clock { get; }
 
-        public int Id => Definition.Id;
+        public int Id => Definition.ID;
 
         public string Name => Definition.Name;
 
-        public ProcessNodeKind Kind => Definition.Kind;
+        public ProcessNodeType Kind => Definition.NodeType;
 
         public ProcessModel Process { get; internal set; }
 
@@ -44,7 +44,7 @@ namespace SimpleWorkflowEngine.Models
 
         public IList<ProcessNodeModel> PreviousNodes { get; }
 
-        public virtual ExecutionStepRecord CreateStep(ProcessInstanceRecord instance, IExecutionContext context)
+        public virtual ProcessExecutionStep CreateStep(ProcessInstance instance, IExecutionContext context)
         {
             if (instance == null)
             {
@@ -56,17 +56,22 @@ namespace SimpleWorkflowEngine.Models
                 throw new ArgumentNullException(nameof(context));
             }
 
-            var step = new ExecutionStepRecord
+            var step = new ProcessExecutionStep
             {
-                ProcessInstanceId = instance.Id,
-                NodeId = Id,
-                CreatedOnUtc = Clock.UtcNow
+                ID = Guid.NewGuid(),
+                ProcessInstanceId = instance.ID,
+                ProcessID = instance.ProcessID,
+                ProcessNodeID = Id,
+                CreatedOnUtc = Clock.UtcNow,
+                PathID = Guid.NewGuid(),
+                RegisterDateTime = Clock.UtcNow.Ticks,
+                RegDate = Clock.UtcNow
             };
 
             return step;
         }
 
-        public abstract NodeContinuation Continue(ProcessInstanceRecord instance, IInternalExecutionContext context, ExecutionStepRecord currentStep, IReadOnlyList<ExecutionStepRecord> previousSteps);
+        public abstract NodeContinuation Continue(ProcessInstance instance, IInternalExecutionContext context, ProcessExecutionStep currentStep, IReadOnlyList<ProcessExecutionStep> previousSteps);
 
         public ProcessNodeModel GetNext(string condition = null)
         {

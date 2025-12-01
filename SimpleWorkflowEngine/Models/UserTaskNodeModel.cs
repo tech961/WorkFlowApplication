@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using SimpleWorkflowEngine.DataModel;
+using SimpleWorkflowEngine.EntityModels;
 using SimpleWorkflowEngine.Runtime;
 using SimpleWorkflowEngine.Support;
 
@@ -9,7 +9,7 @@ namespace SimpleWorkflowEngine.Models
     {
         private const string RegistrationTypeKey = "registrationType";
 
-        public UserTaskNodeModel(ProcessNodeDefinition definition, IClock clock)
+        public UserTaskNodeModel(ProcessNode definition, IClock clock)
             : base(definition, clock)
         {
             RegistrationType = definition.Settings.TryGetValue(RegistrationTypeKey, out string value)
@@ -19,7 +19,7 @@ namespace SimpleWorkflowEngine.Models
 
         public string RegistrationType { get; }
 
-        public override NodeContinuation Continue(ProcessInstanceRecord instance, IInternalExecutionContext context, ExecutionStepRecord currentStep, IReadOnlyList<ExecutionStepRecord> previousSteps)
+        public override NodeContinuation Continue(ProcessInstance instance, IInternalExecutionContext context, ProcessExecutionStep currentStep, IReadOnlyList<ProcessExecutionStep> previousSteps)
         {
             // User tasks wait for external completion.
             return new NodeContinuation

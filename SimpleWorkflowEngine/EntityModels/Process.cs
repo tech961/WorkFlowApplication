@@ -1,4 +1,5 @@
-﻿using System;
+using System;
+using System.Collections.Generic;
 
 namespace SimpleWorkflowEngine.EntityModels
 {
@@ -16,5 +17,7 @@ namespace SimpleWorkflowEngine.EntityModels
         public int RegCompanyID { get; set; }
 
         public VoucherKind VoucherKind { get; set; }
+
+        public IList<ProcessNode> Nodes { get; set; } = new List<ProcessNode>();
     }
 }
