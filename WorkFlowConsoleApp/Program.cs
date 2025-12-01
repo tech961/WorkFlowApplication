@@ -18,7 +18,7 @@ namespace WorkFlowConsoleApp
         {
             Console.WriteLine("=== SimpleWorkflow Engine Test ===");
             Console.WriteLine();
-
+             
             WorkflowService workflowService = new WorkflowService();
 
             string connectionString = ConfigurationManager.ConnectionStrings["WorkflowEngine"]?.ConnectionString 
