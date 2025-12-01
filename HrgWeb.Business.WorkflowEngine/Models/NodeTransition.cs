@@ -1,3 +1,4 @@
+using HrgWeb.Business.WorkflowEngine.Runtime;
 using System;
 
 namespace HrgWeb.Business.WorkflowEngine.Models

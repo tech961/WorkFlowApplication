@@ -1,0 +1,538 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Schema Namespace="HrgWebDevModel" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
+  <EntityType Name="MD_EndEventNode_m">
+    <Key>
+      <PropertyRef Name="ID" />
+    </Key>
+    <Property Name="ID" Type="Int32" Nullable="false" />
+    <NavigationProperty Name="MD_ProcessNode_m" Relationship="Self.FK_MD_EndEventNode_m_MD_ProcessNode_m" FromRole="MD_EndEventNode_m" ToRole="MD_ProcessNode_m" />
+  </EntityType>
+  <EntityType Name="MD_ForkNextProcessNode_m">
+    <Key>
+      <PropertyRef Name="ID" />
+    </Key>
+    <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+    <Property Name="ForkNodeID" Type="Int32" Nullable="false" />
+    <Property Name="NextProcessNodeID" Type="Int32" Nullable="false" />
+    <Property Name="Title" Type="String" MaxLength="100" FixedLength="false" Unicode="true" Nullable="false" />
+    <Property Name="Condition" Type="String" MaxLength="2000" FixedLength="false" Unicode="true" Nullable="false" />
+    <Property Name="DesignerLinkPath" Type="String" MaxLength="500" FixedLength="false" Unicode="false" />
+    <NavigationProperty Name="MD_ForkNode_m" Relationship="Self.FK_MD_ForkNextProcessNode_m_MD_ForkNode_m" FromRole="MD_ForkNextProcessNode_m" ToRole="MD_ForkNode_m" />
+    <NavigationProperty Name="MD_ProcessNode_m" Relationship="Self.FK_MD_ForkNextProcessNode_m_MD_ProcessNode_m" FromRole="MD_ForkNextProcessNode_m" ToRole="MD_ProcessNode_m" />
+  </EntityType>
+  <EntityType Name="MD_ForkNode_m">
+    <Key>
+      <PropertyRef Name="ID" />
+    </Key>
+    <Property Name="ID" Type="Int32" Nullable="false" />
+    <NavigationProperty Name="MD_ForkNextProcessNode_m" Relationship="Self.FK_MD_ForkNextProcessNode_m_MD_ForkNode_m" FromRole="MD_ForkNode_m" ToRole="MD_ForkNextProcessNode_m" />
+    <NavigationProperty Name="MD_ProcessNode_m" Relationship="Self.FK_MD_ForkNode_m_MD_ProcessNode_m1" FromRole="MD_ForkNode_m" ToRole="MD_ProcessNode_m" />
+  </EntityType>
+  <EntityType Name="MD_JoinNode_m">
+    <Key>
+      <PropertyRef Name="ID" />
+    </Key>
+    <Property Name="ID" Type="Int32" Nullable="false" />
+    <NavigationProperty Name="MD_ProcessNode_m" Relationship="Self.FK_MD_JoinNode_m_MD_ProcessNode_m1" FromRole="MD_JoinNode_m" ToRole="MD_ProcessNode_m" />
+  </EntityType>
+  <EntityType Name="MD_JoinPreviousProcessNode_m">
+    <Key>
+      <PropertyRef Name="ID" />
+    </Key>
+    <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+    <Property Name="JoinNodeID" Type="Int32" Nullable="false" />
+    <Property Name="PreviousProcessNodeID" Type="Int32" Nullable="false" />
+    <Property Name="Title" Type="String" MaxLength="100" FixedLength="false" Unicode="true" Nullable="false" />
+    <Property Name="IsOptional" Type="Boolean" Nullable="false" />
+    <Property Name="OptionalCondition" Type="String" MaxLength="2000" FixedLength="false" Unicode="true" />
+    <NavigationProperty Name="MD_ProcessNode_m" Relationship="Self.FK_MD_JoinPreviousProcessNode_m_MD_ProcessNode_m" FromRole="MD_JoinPreviousProcessNode_m" ToRole="MD_ProcessNode_m" />
+  </EntityType>
+  <EntityType Name="MD_Process_m">
+    <Key>
+      <PropertyRef Name="ID" />
+    </Key>
+    <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+    <Property Name="Name" Type="String" MaxLength="500" FixedLength="false" Unicode="true" Nullable="false" />
+    <Property Name="VoucherKindID" Type="Int32" Nullable="false" />
+    <Property Name="Version" Type="Int32" Nullable="false" />
+    <Property Name="Active" Type="Boolean" Nullable="false" />
+    <Property Name="RegUserID" Type="Int32" Nullable="false" />
+    <Property Name="RegDate" Type="String" MaxLength="19" FixedLength="false" Unicode="false" Nullable="false" />
+    <Property Name="ModifyUserID" Type="Int32" />
+    <Property Name="ModifyDate" Type="String" MaxLength="19" FixedLength="false" Unicode="false" />
+    <Property Name="RegCompanyID" Type="Int32" Nullable="false" />
+    <NavigationProperty Name="MD_VoucherKind_h" Relationship="Self.FK_MD_Process_m_MD_VoucherKind_h" FromRole="MD_Process_m" ToRole="MD_VoucherKind_h" />
+    <NavigationProperty Name="MD_ProcessNode_m" Relationship="Self.FK_MD_ProcessNode_m_MD_Process_m" FromRole="MD_Process_m" ToRole="MD_ProcessNode_m" />
+    <NavigationProperty Name="WF_Process_m" Relationship="Self.FK_WF_Process_m_MD_Process_m" FromRole="MD_Process_m" ToRole="WF_Process_m" />
+  </EntityType>
+  <EntityType Name="MD_ProcessNode_m">
+    <Key>
+      <PropertyRef Name="ID" />
+    </Key>
+    <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+    <Property Name="Name" Type="String" MaxLength="500" FixedLength="false" Unicode="true" Nullable="false" />
+    <Property Name="ProcessID" Type="Int32" Nullable="false" />
+    <Property Name="NodeKindID" Type="Int32" Nullable="false" />
+    <Property Name="NextProcessNodeID" Type="Int32" />
+    <Property Name="DesignerLocation" Type="String" MaxLength="30" FixedLength="false" Unicode="false" />
+    <Property Name="DesignerLinkPath" Type="String" MaxLength="500" FixedLength="false" Unicode="false" />
+    <Property Name="RegUserID" Type="Int32" Nullable="false" />
+    <Property Name="RegDate" Type="String" MaxLength="19" FixedLength="false" Unicode="false" Nullable="false" />
+    <Property Name="ModifyUserID" Type="Int32" />
+    <Property Name="ModifyDate" Type="String" MaxLength="19" FixedLength="false" Unicode="false" />
+    <Property Name="RegCompanyID" Type="Int32" Nullable="false" />
+    <NavigationProperty Name="MD_EndEventNode_m" Relationship="Self.FK_MD_EndEventNode_m_MD_ProcessNode_m" FromRole="MD_ProcessNode_m" ToRole="MD_EndEventNode_m" />
+    <NavigationProperty Name="MD_ForkNextProcessNode_m" Relationship="Self.FK_MD_ForkNextProcessNode_m_MD_ProcessNode_m" FromRole="MD_ProcessNode_m" ToRole="MD_ForkNextProcessNode_m" />
+    <NavigationProperty Name="MD_ForkNode_m" Relationship="Self.FK_MD_ForkNode_m_MD_ProcessNode_m1" FromRole="MD_ProcessNode_m" ToRole="MD_ForkNode_m" />
+    <NavigationProperty Name="MD_JoinNode_m" Relationship="Self.FK_MD_JoinNode_m_MD_ProcessNode_m1" FromRole="MD_ProcessNode_m" ToRole="MD_JoinNode_m" />
+    <NavigationProperty Name="MD_JoinPreviousProcessNode_m" Relationship="Self.FK_MD_JoinPreviousProcessNode_m_MD_ProcessNode_m" FromRole="MD_ProcessNode_m" ToRole="MD_JoinPreviousProcessNode_m" />
+    <NavigationProperty Name="MD_Process_m" Relationship="Self.FK_MD_ProcessNode_m_MD_Process_m" FromRole="MD_ProcessNode_m" ToRole="MD_Process_m" />
+    <NavigationProperty Name="MD_ProcessNode_m1" Relationship="Self.FK_MD_ProcessNode_m_MD_ProcessNode_m" FromRole="MD_ProcessNode_m" ToRole="MD_ProcessNode_m1" />
+    <NavigationProperty Name="MD_ProcessNode_m2" Relationship="Self.FK_MD_ProcessNode_m_MD_ProcessNode_m" FromRole="MD_ProcessNode_m1" ToRole="MD_ProcessNode_m" />
+    <NavigationProperty Name="MD_ProcessNodeKind_h" Relationship="Self.FK_MD_ProcessNode_m_MD_ProcessNodeKind_h" FromRole="MD_ProcessNode_m" ToRole="MD_ProcessNodeKind_h" />
+    <NavigationProperty Name="MD_ServiceTaskNode_m" Relationship="Self.FK_MD_ServiceTaskNode_m_MD_ProcessNode_m" FromRole="MD_ProcessNode_m" ToRole="MD_ServiceTaskNode_m" />
+    <NavigationProperty Name="MD_StartEventNode_m" Relationship="Self.FK_MD_StartEventNode_m_MD_ProcessNode_m" FromRole="MD_ProcessNode_m" ToRole="MD_StartEventNode_m" />
+    <NavigationProperty Name="MD_TimerNode_m" Relationship="Self.FK_MD_TimerNode_m_MD_ProcessNode_m" FromRole="MD_ProcessNode_m" ToRole="MD_TimerNode_m" />
+    <NavigationProperty Name="MD_UserTaskNode_m" Relationship="Self.FK_MD_UserTaskNode_m_MD_ProcessNode_m" FromRole="MD_ProcessNode_m" ToRole="MD_UserTaskNode_m" />
+    <NavigationProperty Name="WF_ProcessExecutionStep_m" Relationship="Self.FK_WF_ProcessExecutionStep_m_MD_ProcessNode_m" FromRole="MD_ProcessNode_m" ToRole="WF_ProcessExecutionStep_m" />
+  </EntityType>
+  <EntityType Name="MD_ProcessNodeKind_h">
+    <Key>
+      <PropertyRef Name="ID" />
+    </Key>
+    <Property Name="ID" Type="Int32" Nullable="false" />
+    <Property Name="Name" Type="String" MaxLength="500" FixedLength="false" Unicode="true" Nullable="false" />
+    <Property Name="Type" Type="Int32" />
+    <Property Name="TypeDesc" Type="String" MaxLength="256" FixedLength="false" Unicode="true" />
+    <Property Name="Remark" Type="String" MaxLength="256" FixedLength="false" Unicode="true" />
+    <NavigationProperty Name="MD_ProcessNode_m" Relationship="Self.FK_MD_ProcessNode_m_MD_ProcessNodeKind_h" FromRole="MD_ProcessNodeKind_h" ToRole="MD_ProcessNode_m" />
+  </EntityType>
+  <EntityType Name="MD_ServiceTaskNode_m">
+    <Key>
+      <PropertyRef Name="ID" />
+    </Key>
+    <Property Name="ID" Type="Int32" Nullable="false" />
+    <Property Name="TypeId" Type="Int32" Nullable="false" />
+    <Property Name="Metadata" Type="String" MaxLength="2000" FixedLength="false" Unicode="true" Nullable="false" />
+    <NavigationProperty Name="MD_ProcessNode_m" Relationship="Self.FK_MD_ServiceTaskNode_m_MD_ProcessNode_m" FromRole="MD_ServiceTaskNode_m" ToRole="MD_ProcessNode_m" />
+  </EntityType>
+  <EntityType Name="MD_StartEventNode_m">
+    <Key>
+      <PropertyRef Name="ID" />
+    </Key>
+    <Property Name="ID" Type="Int32" Nullable="false" />
+    <NavigationProperty Name="MD_ProcessNode_m" Relationship="Self.FK_MD_StartEventNode_m_MD_ProcessNode_m" FromRole="MD_StartEventNode_m" ToRole="MD_ProcessNode_m" />
+  </EntityType>
+  <EntityType Name="MD_TimerNode_m">
+    <Key>
+      <PropertyRef Name="ID" />
+    </Key>
+    <Property Name="ID" Type="Int32" Nullable="false" />
+    <Property Name="DelayDateTimeExpression" Type="String" MaxLength="2000" FixedLength="false" Unicode="true" Nullable="false" />
+    <NavigationProperty Name="MD_ProcessNode_m" Relationship="Self.FK_MD_TimerNode_m_MD_ProcessNode_m" FromRole="MD_TimerNode_m" ToRole="MD_ProcessNode_m" />
+  </EntityType>
+  <EntityType Name="MD_UserTaskNode_m">
+    <Key>
+      <PropertyRef Name="ID" />
+    </Key>
+    <Property Name="ID" Type="Int32" Nullable="false" />
+    <Property Name="RegistrationTypeID" Type="Int32" Nullable="false" />
+    <Property Name="IsStartTask" Type="Boolean" Nullable="false" />
+    <NavigationProperty Name="MD_ProcessNode_m" Relationship="Self.FK_MD_UserTaskNode_m_MD_ProcessNode_m" FromRole="MD_UserTaskNode_m" ToRole="MD_ProcessNode_m" />
+    <NavigationProperty Name="MD_UserTaskRegistrationType_h" Relationship="Self.FK_MD_UserTaskNode_m_MD_UserTaskRegistrationType_h" FromRole="MD_UserTaskNode_m" ToRole="MD_UserTaskRegistrationType_h" />
+  </EntityType>
+  <EntityType Name="MD_UserTaskRegistrationType_h">
+    <Key>
+      <PropertyRef Name="ID" />
+    </Key>
+    <Property Name="ID" Type="Int32" Nullable="false" />
+    <Property Name="Name" Type="String" MaxLength="100" FixedLength="false" Unicode="true" Nullable="false" />
+    <Property Name="Remark" Type="String" MaxLength="256" FixedLength="false" Unicode="true" />
+    <Property Name="Type" Type="Int32" />
+    <Property Name="TypeDesc" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+    <NavigationProperty Name="MD_UserTaskNode_m" Relationship="Self.FK_MD_UserTaskNode_m_MD_UserTaskRegistrationType_h" FromRole="MD_UserTaskRegistrationType_h" ToRole="MD_UserTaskNode_m" />
+  </EntityType>
+  <EntityType Name="MD_VoucherKind_h">
+    <Key>
+      <PropertyRef Name="ID" />
+    </Key>
+    <Property Name="ID" Type="Int32" Nullable="false" />
+    <Property Name="Name" Type="String" MaxLength="100" FixedLength="false" Unicode="true" Nullable="false" />
+    <Property Name="Remark" Type="String" MaxLength="256" FixedLength="false" Unicode="false" />
+    <Property Name="Type" Type="Int32" />
+    <Property Name="TypeDesc" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+    <Property Name="AttachFormUrlID" Type="Int32" />
+    <Property Name="IconEnum" Type="Int16" />
+    <Property Name="WorkSheetPermissionItemID" Type="Int32" Nullable="false" />
+    <Property Name="ServiceAssemblyName" Type="String" MaxLength="300" FixedLength="false" Unicode="false" Nullable="false" />
+    <Property Name="GetMethodName" Type="String" MaxLength="30" FixedLength="false" Unicode="false" Nullable="false" />
+    <Property Name="LatinName" Type="String" MaxLength="256" FixedLength="false" Unicode="false" annotation:StoreGeneratedPattern="Computed" />
+    <Property Name="ClientCenter" Type="Boolean" Nullable="false" />
+    <Property Name="Company" Type="Boolean" Nullable="false" />
+    <Property Name="IsGoverment" Type="Boolean" Nullable="false" />
+    <NavigationProperty Name="MD_Process_m" Relationship="Self.FK_MD_Process_m_MD_VoucherKind_h" FromRole="MD_VoucherKind_h" ToRole="MD_Process_m" />
+  </EntityType>
+  <EntityType Name="WF_Process_m">
+    <Key>
+      <PropertyRef Name="ID" />
+    </Key>
+    <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+    <Property Name="ProcessMetaDataID" Type="Int32" Nullable="false" />
+    <Property Name="VoucherRowID" Type="Int32" Nullable="false" />
+    <Property Name="Closed" Type="Boolean" Nullable="false" />
+    <Property Name="RegUserID" Type="Int32" Nullable="false" />
+    <Property Name="RegDate" Type="String" MaxLength="19" FixedLength="false" Unicode="false" Nullable="false" />
+    <Property Name="ModifyUserID" Type="Int32" />
+    <Property Name="ModifyDate" Type="String" MaxLength="19" FixedLength="false" Unicode="false" />
+    <Property Name="RegCompanyID" Type="Int32" Nullable="false" />
+    <NavigationProperty Name="MD_Process_m" Relationship="Self.FK_WF_Process_m_MD_Process_m" FromRole="WF_Process_m" ToRole="MD_Process_m" />
+    <NavigationProperty Name="WF_ProcessExecutionStep_m" Relationship="Self.FK_WF_ProcessExecutionStep_m_WF_Process_m" FromRole="WF_Process_m" ToRole="WF_ProcessExecutionStep_m" />
+  </EntityType>
+  <EntityType Name="WF_ProcessExecutionStep_m">
+    <Key>
+      <PropertyRef Name="ID" />
+    </Key>
+    <Property Name="ID" Type="Guid" Nullable="false" />
+    <Property Name="ProcessID" Type="Int32" Nullable="false" />
+    <Property Name="ProcessNodeID" Type="Int32" Nullable="false" />
+    <Property Name="PathID" Type="Guid" Nullable="false" />
+    <Property Name="Done" Type="Boolean" Nullable="false" />
+    <Property Name="RegisterDateTime" Type="Int64" Nullable="false" />
+    <Property Name="DoneDateTime" Type="Int64" />
+    <Property Name="PreviousExecutionStepID" Type="String" MaxLength="800" FixedLength="false" Unicode="false" Nullable="false" />
+    <Property Name="Data" Type="String" MaxLength="250" FixedLength="false" Unicode="true" />
+    <Property Name="RegUserID" Type="Int32" Nullable="false" />
+    <Property Name="RegDate" Type="String" MaxLength="19" FixedLength="false" Unicode="false" Nullable="false" />
+    <Property Name="ModifyUserID" Type="Int32" />
+    <Property Name="ModifyDate" Type="String" MaxLength="19" FixedLength="false" Unicode="false" />
+    <Property Name="RegCompanyID" Type="Int32" Nullable="false" />
+    <NavigationProperty Name="MD_ProcessNode_m" Relationship="Self.FK_WF_ProcessExecutionStep_m_MD_ProcessNode_m" FromRole="WF_ProcessExecutionStep_m" ToRole="MD_ProcessNode_m" />
+    <NavigationProperty Name="WF_Process_m" Relationship="Self.FK_WF_ProcessExecutionStep_m_WF_Process_m" FromRole="WF_ProcessExecutionStep_m" ToRole="WF_Process_m" />
+  </EntityType>
+  <Association Name="FK_MD_EndEventNode_m_MD_ProcessNode_m">
+    <End Role="MD_ProcessNode_m" Type="Self.MD_ProcessNode_m" Multiplicity="1">
+      <OnDelete Action="Cascade" />
+    </End>
+    <End Role="MD_EndEventNode_m" Type="Self.MD_EndEventNode_m" Multiplicity="0..1" />
+    <ReferentialConstraint>
+      <Principal Role="MD_ProcessNode_m">
+        <PropertyRef Name="ID" />
+      </Principal>
+      <Dependent Role="MD_EndEventNode_m">
+        <PropertyRef Name="ID" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_MD_ForkNextProcessNode_m_MD_ForkNode_m">
+    <End Role="MD_ForkNode_m" Type="Self.MD_ForkNode_m" Multiplicity="1">
+      <OnDelete Action="Cascade" />
+    </End>
+    <End Role="MD_ForkNextProcessNode_m" Type="Self.MD_ForkNextProcessNode_m" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="MD_ForkNode_m">
+        <PropertyRef Name="ID" />
+      </Principal>
+      <Dependent Role="MD_ForkNextProcessNode_m">
+        <PropertyRef Name="ForkNodeID" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_MD_ForkNextProcessNode_m_MD_ProcessNode_m">
+    <End Role="MD_ProcessNode_m" Type="Self.MD_ProcessNode_m" Multiplicity="1" />
+    <End Role="MD_ForkNextProcessNode_m" Type="Self.MD_ForkNextProcessNode_m" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="MD_ProcessNode_m">
+        <PropertyRef Name="ID" />
+      </Principal>
+      <Dependent Role="MD_ForkNextProcessNode_m">
+        <PropertyRef Name="NextProcessNodeID" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_MD_ForkNode_m_MD_ProcessNode_m1">
+    <End Role="MD_ProcessNode_m" Type="Self.MD_ProcessNode_m" Multiplicity="1">
+      <OnDelete Action="Cascade" />
+    </End>
+    <End Role="MD_ForkNode_m" Type="Self.MD_ForkNode_m" Multiplicity="0..1" />
+    <ReferentialConstraint>
+      <Principal Role="MD_ProcessNode_m">
+        <PropertyRef Name="ID" />
+      </Principal>
+      <Dependent Role="MD_ForkNode_m">
+        <PropertyRef Name="ID" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_MD_JoinNode_m_MD_ProcessNode_m1">
+    <End Role="MD_ProcessNode_m" Type="Self.MD_ProcessNode_m" Multiplicity="1">
+      <OnDelete Action="Cascade" />
+    </End>
+    <End Role="MD_JoinNode_m" Type="Self.MD_JoinNode_m" Multiplicity="0..1" />
+    <ReferentialConstraint>
+      <Principal Role="MD_ProcessNode_m">
+        <PropertyRef Name="ID" />
+      </Principal>
+      <Dependent Role="MD_JoinNode_m">
+        <PropertyRef Name="ID" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_MD_JoinPreviousProcessNode_m_MD_ProcessNode_m">
+    <End Role="MD_ProcessNode_m" Type="Self.MD_ProcessNode_m" Multiplicity="1">
+      <OnDelete Action="Cascade" />
+    </End>
+    <End Role="MD_JoinPreviousProcessNode_m" Type="Self.MD_JoinPreviousProcessNode_m" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="MD_ProcessNode_m">
+        <PropertyRef Name="ID" />
+      </Principal>
+      <Dependent Role="MD_JoinPreviousProcessNode_m">
+        <PropertyRef Name="PreviousProcessNodeID" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_MD_Process_m_MD_VoucherKind_h">
+    <End Role="MD_VoucherKind_h" Type="Self.MD_VoucherKind_h" Multiplicity="1" />
+    <End Role="MD_Process_m" Type="Self.MD_Process_m" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="MD_VoucherKind_h">
+        <PropertyRef Name="ID" />
+      </Principal>
+      <Dependent Role="MD_Process_m">
+        <PropertyRef Name="VoucherKindID" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_MD_ProcessNode_m_MD_Process_m">
+    <End Role="MD_Process_m" Type="Self.MD_Process_m" Multiplicity="1">
+      <OnDelete Action="Cascade" />
+    </End>
+    <End Role="MD_ProcessNode_m" Type="Self.MD_ProcessNode_m" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="MD_Process_m">
+        <PropertyRef Name="ID" />
+      </Principal>
+      <Dependent Role="MD_ProcessNode_m">
+        <PropertyRef Name="ProcessID" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_WF_Process_m_MD_Process_m">
+    <End Role="MD_Process_m" Type="Self.MD_Process_m" Multiplicity="1" />
+    <End Role="WF_Process_m" Type="Self.WF_Process_m" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="MD_Process_m">
+        <PropertyRef Name="ID" />
+      </Principal>
+      <Dependent Role="WF_Process_m">
+        <PropertyRef Name="ProcessMetaDataID" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_MD_ProcessNode_m_MD_ProcessNode_m">
+    <End Role="MD_ProcessNode_m" Type="Self.MD_ProcessNode_m" Multiplicity="0..1" />
+    <End Role="MD_ProcessNode_m1" Type="Self.MD_ProcessNode_m" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="MD_ProcessNode_m">
+        <PropertyRef Name="ID" />
+      </Principal>
+      <Dependent Role="MD_ProcessNode_m1">
+        <PropertyRef Name="NextProcessNodeID" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_MD_ProcessNode_m_MD_ProcessNodeKind_h">
+    <End Role="MD_ProcessNodeKind_h" Type="Self.MD_ProcessNodeKind_h" Multiplicity="1" />
+    <End Role="MD_ProcessNode_m" Type="Self.MD_ProcessNode_m" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="MD_ProcessNodeKind_h">
+        <PropertyRef Name="ID" />
+      </Principal>
+      <Dependent Role="MD_ProcessNode_m">
+        <PropertyRef Name="NodeKindID" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_MD_ServiceTaskNode_m_MD_ProcessNode_m">
+    <End Role="MD_ProcessNode_m" Type="Self.MD_ProcessNode_m" Multiplicity="1">
+      <OnDelete Action="Cascade" />
+    </End>
+    <End Role="MD_ServiceTaskNode_m" Type="Self.MD_ServiceTaskNode_m" Multiplicity="0..1" />
+    <ReferentialConstraint>
+      <Principal Role="MD_ProcessNode_m">
+        <PropertyRef Name="ID" />
+      </Principal>
+      <Dependent Role="MD_ServiceTaskNode_m">
+        <PropertyRef Name="ID" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_MD_StartEventNode_m_MD_ProcessNode_m">
+    <End Role="MD_ProcessNode_m" Type="Self.MD_ProcessNode_m" Multiplicity="1">
+      <OnDelete Action="Cascade" />
+    </End>
+    <End Role="MD_StartEventNode_m" Type="Self.MD_StartEventNode_m" Multiplicity="0..1" />
+    <ReferentialConstraint>
+      <Principal Role="MD_ProcessNode_m">
+        <PropertyRef Name="ID" />
+      </Principal>
+      <Dependent Role="MD_StartEventNode_m">
+        <PropertyRef Name="ID" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_MD_TimerNode_m_MD_ProcessNode_m">
+    <End Role="MD_ProcessNode_m" Type="Self.MD_ProcessNode_m" Multiplicity="1">
+      <OnDelete Action="Cascade" />
+    </End>
+    <End Role="MD_TimerNode_m" Type="Self.MD_TimerNode_m" Multiplicity="0..1" />
+    <ReferentialConstraint>
+      <Principal Role="MD_ProcessNode_m">
+        <PropertyRef Name="ID" />
+      </Principal>
+      <Dependent Role="MD_TimerNode_m">
+        <PropertyRef Name="ID" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_MD_UserTaskNode_m_MD_ProcessNode_m">
+    <End Role="MD_ProcessNode_m" Type="Self.MD_ProcessNode_m" Multiplicity="1">
+      <OnDelete Action="Cascade" />
+    </End>
+    <End Role="MD_UserTaskNode_m" Type="Self.MD_UserTaskNode_m" Multiplicity="0..1" />
+    <ReferentialConstraint>
+      <Principal Role="MD_ProcessNode_m">
+        <PropertyRef Name="ID" />
+      </Principal>
+      <Dependent Role="MD_UserTaskNode_m">
+        <PropertyRef Name="ID" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_WF_ProcessExecutionStep_m_MD_ProcessNode_m">
+    <End Role="MD_ProcessNode_m" Type="Self.MD_ProcessNode_m" Multiplicity="1" />
+    <End Role="WF_ProcessExecutionStep_m" Type="Self.WF_ProcessExecutionStep_m" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="MD_ProcessNode_m">
+        <PropertyRef Name="ID" />
+      </Principal>
+      <Dependent Role="WF_ProcessExecutionStep_m">
+        <PropertyRef Name="ProcessNodeID" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_MD_UserTaskNode_m_MD_UserTaskRegistrationType_h">
+    <End Role="MD_UserTaskRegistrationType_h" Type="Self.MD_UserTaskRegistrationType_h" Multiplicity="1" />
+    <End Role="MD_UserTaskNode_m" Type="Self.MD_UserTaskNode_m" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="MD_UserTaskRegistrationType_h">
+        <PropertyRef Name="ID" />
+      </Principal>
+      <Dependent Role="MD_UserTaskNode_m">
+        <PropertyRef Name="RegistrationTypeID" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_WF_ProcessExecutionStep_m_WF_Process_m">
+    <End Role="WF_Process_m" Type="Self.WF_Process_m" Multiplicity="1" />
+    <End Role="WF_ProcessExecutionStep_m" Type="Self.WF_ProcessExecutionStep_m" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="WF_Process_m">
+        <PropertyRef Name="ID" />
+      </Principal>
+      <Dependent Role="WF_ProcessExecutionStep_m">
+        <PropertyRef Name="ProcessID" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <EntityContainer Name="WorkFlowDbContext" annotation:LazyLoadingEnabled="true">
+    <EntitySet Name="MD_EndEventNode_m" EntityType="Self.MD_EndEventNode_m" />
+    <EntitySet Name="MD_ForkNextProcessNode_m" EntityType="Self.MD_ForkNextProcessNode_m" />
+    <EntitySet Name="MD_ForkNode_m" EntityType="Self.MD_ForkNode_m" />
+    <EntitySet Name="MD_JoinNode_m" EntityType="Self.MD_JoinNode_m" />
+    <EntitySet Name="MD_JoinPreviousProcessNode_m" EntityType="Self.MD_JoinPreviousProcessNode_m" />
+    <EntitySet Name="MD_Process_m" EntityType="Self.MD_Process_m" />
+    <EntitySet Name="MD_ProcessNode_m" EntityType="Self.MD_ProcessNode_m" />
+    <EntitySet Name="MD_ProcessNodeKind_h" EntityType="Self.MD_ProcessNodeKind_h" />
+    <EntitySet Name="MD_ServiceTaskNode_m" EntityType="Self.MD_ServiceTaskNode_m" />
+    <EntitySet Name="MD_StartEventNode_m" EntityType="Self.MD_StartEventNode_m" />
+    <EntitySet Name="MD_TimerNode_m" EntityType="Self.MD_TimerNode_m" />
+    <EntitySet Name="MD_UserTaskNode_m" EntityType="Self.MD_UserTaskNode_m" />
+    <EntitySet Name="MD_UserTaskRegistrationType_h" EntityType="Self.MD_UserTaskRegistrationType_h" />
+    <EntitySet Name="MD_VoucherKind_h" EntityType="Self.MD_VoucherKind_h" />
+    <EntitySet Name="WF_Process_m" EntityType="Self.WF_Process_m" />
+    <EntitySet Name="WF_ProcessExecutionStep_m" EntityType="Self.WF_ProcessExecutionStep_m" />
+    <AssociationSet Name="FK_MD_EndEventNode_m_MD_ProcessNode_m" Association="Self.FK_MD_EndEventNode_m_MD_ProcessNode_m">
+      <End Role="MD_ProcessNode_m" EntitySet="MD_ProcessNode_m" />
+      <End Role="MD_EndEventNode_m" EntitySet="MD_EndEventNode_m" />
+    </AssociationSet>
+    <AssociationSet Name="FK_MD_ForkNextProcessNode_m_MD_ForkNode_m" Association="Self.FK_MD_ForkNextProcessNode_m_MD_ForkNode_m">
+      <End Role="MD_ForkNode_m" EntitySet="MD_ForkNode_m" />
+      <End Role="MD_ForkNextProcessNode_m" EntitySet="MD_ForkNextProcessNode_m" />
+    </AssociationSet>
+    <AssociationSet Name="FK_MD_ForkNextProcessNode_m_MD_ProcessNode_m" Association="Self.FK_MD_ForkNextProcessNode_m_MD_ProcessNode_m">
+      <End Role="MD_ProcessNode_m" EntitySet="MD_ProcessNode_m" />
+      <End Role="MD_ForkNextProcessNode_m" EntitySet="MD_ForkNextProcessNode_m" />
+    </AssociationSet>
+    <AssociationSet Name="FK_MD_ForkNode_m_MD_ProcessNode_m1" Association="Self.FK_MD_ForkNode_m_MD_ProcessNode_m1">
+      <End Role="MD_ProcessNode_m" EntitySet="MD_ProcessNode_m" />
+      <End Role="MD_ForkNode_m" EntitySet="MD_ForkNode_m" />
+    </AssociationSet>
+    <AssociationSet Name="FK_MD_JoinNode_m_MD_ProcessNode_m1" Association="Self.FK_MD_JoinNode_m_MD_ProcessNode_m1">
+      <End Role="MD_ProcessNode_m" EntitySet="MD_ProcessNode_m" />
+      <End Role="MD_JoinNode_m" EntitySet="MD_JoinNode_m" />
+    </AssociationSet>
+    <AssociationSet Name="FK_MD_JoinPreviousProcessNode_m_MD_ProcessNode_m" Association="Self.FK_MD_JoinPreviousProcessNode_m_MD_ProcessNode_m">
+      <End Role="MD_ProcessNode_m" EntitySet="MD_ProcessNode_m" />
+      <End Role="MD_JoinPreviousProcessNode_m" EntitySet="MD_JoinPreviousProcessNode_m" />
+    </AssociationSet>
+    <AssociationSet Name="FK_MD_Process_m_MD_VoucherKind_h" Association="Self.FK_MD_Process_m_MD_VoucherKind_h">
+      <End Role="MD_VoucherKind_h" EntitySet="MD_VoucherKind_h" />
+      <End Role="MD_Process_m" EntitySet="MD_Process_m" />
+    </AssociationSet>
+    <AssociationSet Name="FK_MD_ProcessNode_m_MD_Process_m" Association="Self.FK_MD_ProcessNode_m_MD_Process_m">
+      <End Role="MD_Process_m" EntitySet="MD_Process_m" />
+      <End Role="MD_ProcessNode_m" EntitySet="MD_ProcessNode_m" />
+    </AssociationSet>
+    <AssociationSet Name="FK_WF_Process_m_MD_Process_m" Association="Self.FK_WF_Process_m_MD_Process_m">
+      <End Role="MD_Process_m" EntitySet="MD_Process_m" />
+      <End Role="WF_Process_m" EntitySet="WF_Process_m" />
+    </AssociationSet>
+    <AssociationSet Name="FK_MD_ProcessNode_m_MD_ProcessNode_m" Association="Self.FK_MD_ProcessNode_m_MD_ProcessNode_m">
+      <End Role="MD_ProcessNode_m" EntitySet="MD_ProcessNode_m" />
+      <End Role="MD_ProcessNode_m1" EntitySet="MD_ProcessNode_m" />
+    </AssociationSet>
+    <AssociationSet Name="FK_MD_ProcessNode_m_MD_ProcessNodeKind_h" Association="Self.FK_MD_ProcessNode_m_MD_ProcessNodeKind_h">
+      <End Role="MD_ProcessNodeKind_h" EntitySet="MD_ProcessNodeKind_h" />
+      <End Role="MD_ProcessNode_m" EntitySet="MD_ProcessNode_m" />
+    </AssociationSet>
+    <AssociationSet Name="FK_MD_ServiceTaskNode_m_MD_ProcessNode_m" Association="Self.FK_MD_ServiceTaskNode_m_MD_ProcessNode_m">
+      <End Role="MD_ProcessNode_m" EntitySet="MD_ProcessNode_m" />
+      <End Role="MD_ServiceTaskNode_m" EntitySet="MD_ServiceTaskNode_m" />
+    </AssociationSet>
+    <AssociationSet Name="FK_MD_StartEventNode_m_MD_ProcessNode_m" Association="Self.FK_MD_StartEventNode_m_MD_ProcessNode_m">
+      <End Role="MD_ProcessNode_m" EntitySet="MD_ProcessNode_m" />
+      <End Role="MD_StartEventNode_m" EntitySet="MD_StartEventNode_m" />
+    </AssociationSet>
+    <AssociationSet Name="FK_MD_TimerNode_m_MD_ProcessNode_m" Association="Self.FK_MD_TimerNode_m_MD_ProcessNode_m">
+      <End Role="MD_ProcessNode_m" EntitySet="MD_ProcessNode_m" />
+      <End Role="MD_TimerNode_m" EntitySet="MD_TimerNode_m" />
+    </AssociationSet>
+    <AssociationSet Name="FK_MD_UserTaskNode_m_MD_ProcessNode_m" Association="Self.FK_MD_UserTaskNode_m_MD_ProcessNode_m">
+      <End Role="MD_ProcessNode_m" EntitySet="MD_ProcessNode_m" />
+      <End Role="MD_UserTaskNode_m" EntitySet="MD_UserTaskNode_m" />
+    </AssociationSet>
+    <AssociationSet Name="FK_WF_ProcessExecutionStep_m_MD_ProcessNode_m" Association="Self.FK_WF_ProcessExecutionStep_m_MD_ProcessNode_m">
+      <End Role="MD_ProcessNode_m" EntitySet="MD_ProcessNode_m" />
+      <End Role="WF_ProcessExecutionStep_m" EntitySet="WF_ProcessExecutionStep_m" />
+    </AssociationSet>
+    <AssociationSet Name="FK_MD_UserTaskNode_m_MD_UserTaskRegistrationType_h" Association="Self.FK_MD_UserTaskNode_m_MD_UserTaskRegistrationType_h">
+      <End Role="MD_UserTaskRegistrationType_h" EntitySet="MD_UserTaskRegistrationType_h" />
+      <End Role="MD_UserTaskNode_m" EntitySet="MD_UserTaskNode_m" />
+    </AssociationSet>
+    <AssociationSet Name="FK_WF_ProcessExecutionStep_m_WF_Process_m" Association="Self.FK_WF_ProcessExecutionStep_m_WF_Process_m">
+      <End Role="WF_Process_m" EntitySet="WF_Process_m" />
+      <End Role="WF_ProcessExecutionStep_m" EntitySet="WF_ProcessExecutionStep_m" />
+    </AssociationSet>
+  </EntityContainer>
+</Schema>

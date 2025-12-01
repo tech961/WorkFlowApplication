@@ -5,12 +5,13 @@ namespace HrgWeb.Business.WorkflowEngine.DataModel
     /// </summary>
     public enum ProcessNodeKind
     {
-        StartEventNode,
-        UserTaskNode,
-        ServiceTaskNode,
-        ForkNode,
-        JoinNode,
-        EndEventNode,
-        Timer
+        None = 0,
+        StartEventNode = 1,
+        UserTaskNode = 2,
+        ServiceTaskNode = 3,
+        ForkNode = 4,
+        JoinNode = 5,
+        EndEventNode = 6,
+        Timer = 7
     }
 }

@@ -1,0 +1,76 @@
+{
+  "format": 1,
+  "restore": {
+    "D:\\Temp\\New folder (11)\\New folder (3)\\WorkFlowApplication\\WorkFlowConsoleApp\\WorkFlowConsoleApp.csproj": {}
+  },
+  "projects": {
+    "D:\\Temp\\New folder (11)\\New folder (3)\\WorkFlowApplication\\HrgWeb.Business.WorkflowEngine\\HrgWeb.Business.WorkflowEngine.csproj": {
+      "restore": {
+        "projectUniqueName": "D:\\Temp\\New folder (11)\\New folder (3)\\WorkFlowApplication\\HrgWeb.Business.WorkflowEngine\\HrgWeb.Business.WorkflowEngine.csproj",
+        "projectName": "HrgWeb.Business.WorkflowEngine",
+        "projectPath": "D:\\Temp\\New folder (11)\\New folder (3)\\WorkFlowApplication\\HrgWeb.Business.WorkflowEngine\\HrgWeb.Business.WorkflowEngine.csproj",
+        "frameworks": {
+          "net472": {
+            "projectReferences": {}
+          }
+        }
+      },
+      "frameworks": {
+        "net472": {}
+      }
+    },
+    "D:\\Temp\\New folder (11)\\New folder (3)\\WorkFlowApplication\\WorkFlowConsoleApp\\WorkFlowConsoleApp.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "D:\\Temp\\New folder (11)\\New folder (3)\\WorkFlowApplication\\WorkFlowConsoleApp\\WorkFlowConsoleApp.csproj",
+        "projectName": "WorkFlowConsoleApp",
+        "projectPath": "D:\\Temp\\New folder (11)\\New folder (3)\\WorkFlowApplication\\WorkFlowConsoleApp\\WorkFlowConsoleApp.csproj",
+        "packagesPath": "C:\\Users\\E.jadidi\\.nuget\\packages\\",
+        "outputPath": "D:\\Temp\\New folder (11)\\New folder (3)\\WorkFlowApplication\\WorkFlowConsoleApp\\obj\\",
+        "projectStyle": "PackageReference",
+        "skipContentFileWrite": true,
+        "configFilePaths": [
+          "C:\\Users\\E.jadidi\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net472"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net472": {
+            "projectReferences": {
+              "D:\\Temp\\New folder (11)\\New folder (3)\\WorkFlowApplication\\HrgWeb.Business.WorkflowEngine\\HrgWeb.Business.WorkflowEngine.csproj": {
+                "projectPath": "D:\\Temp\\New folder (11)\\New folder (3)\\WorkFlowApplication\\HrgWeb.Business.WorkflowEngine\\HrgWeb.Business.WorkflowEngine.csproj"
+              }
+            }
+          }
+        }
+      },
+      "frameworks": {
+        "net472": {
+          "dependencies": {
+            "Dapper": {
+              "target": "Package",
+              "version": "[2.1.35, )"
+            }
+          }
+        }
+      },
+      "runtimes": {
+        "win": {
+          "#import": []
+        },
+        "win-x64": {
+          "#import": []
+        },
+        "win-x86": {
+          "#import": []
+        }
+      }
+    }
+  }
+}

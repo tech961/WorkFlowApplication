@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using HrgWeb.Business.WorkflowEngine.DataModel;
 using HrgWeb.Business.WorkflowEngine.EntityModels;
 using HrgWeb.Business.WorkflowEngine.Models;
 using HrgWeb.Business.WorkflowEngine.Runtime;
@@ -188,20 +189,20 @@ namespace HrgWeb.Business.WorkflowEngine.Engine
 
         private ProcessNodeModel CreateNodeModel(ProcessNode definition)
         {
-            switch (definition.NodeType)
+            switch (definition.NodeKind)
             {
-                case ProcessNodeType.StartEvent:
+                case ProcessNodeKind.StartEventNode:
                     return new StartEventNodeModel(definition, _clock);
-                case ProcessNodeType.EndEvent:
+                case ProcessNodeKind.EndEventNode:
                     return new EndEventNodeModel(definition, _clock);
-                case ProcessNodeType.UserTask:
+                case ProcessNodeKind.UserTaskNode:
                     return new UserTaskNodeModel(definition, _clock);
-                case ProcessNodeType.ServiceTask:
+                case ProcessNodeKind.ServiceTaskNode:
                     return new ServiceTaskNodeModel(definition, _clock);
-                case ProcessNodeType.Timer:
+                case ProcessNodeKind.Timer:
                     return new TimerNodeModel(definition, _clock);
                 default:
-                    throw new InvalidOperationException(string.Format("Unsupported node kind '{0}'.", definition.NodeType));
+                    throw new InvalidOperationException(string.Format("Unsupported node kind '{0}'.", definition.NodeKind));
             }
         }
 
@@ -278,7 +279,7 @@ namespace HrgWeb.Business.WorkflowEngine.Engine
             {
                 StepId = step.Id,
                 ProcessInstanceId = instance.Id,
-                NodeId = timerNode.Id,
+                NodeId = timerNode.ID,
                 ExecuteAtUtc = dueDate,
                 UserId = context.UserId,
                 CompanyId = context.CompanyId,
@@ -286,7 +287,7 @@ namespace HrgWeb.Business.WorkflowEngine.Engine
                 VoucherId = context.Voucher.ID,
                 VoucherKind = context.Voucher.Kind,
                 WorkflowData = context.WorkflowData != null
-                    ? context.WorkflowData.Select(item => new WorkflowMetadata(item.Key, item.Value)).ToArray()
+                    ? context.WorkflowData.Select(item => new WorkflowMetadata(item.ID)).ToArray()
                     : new WorkflowMetadata[0]
             };
             _scheduler.Enqueue(request);

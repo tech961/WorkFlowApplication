@@ -11,7 +11,7 @@ namespace HrgWeb.Business.WorkflowEngine.Runtime
         {
         }
 
-        public ServiceTaskNodeModel(ProcessNodeDefinition definition, IClock clock)
+        public ServiceTaskNodeModel(ProcessNode definition, IClock clock)
             : base(definition, clock)
         {
         }

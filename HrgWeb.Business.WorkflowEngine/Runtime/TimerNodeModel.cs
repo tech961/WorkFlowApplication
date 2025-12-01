@@ -14,7 +14,7 @@ namespace HrgWeb.Business.WorkflowEngine.Runtime
         {
         }
 
-        public TimerNodeModel(ProcessNodeDefinition definition, IClock clock)
+        public TimerNodeModel(ProcessNode definition, IClock clock)
             : base(definition, clock)
         {
             if (definition != null && definition.Settings.TryGetValue(DelayExpressionKey, out string value))

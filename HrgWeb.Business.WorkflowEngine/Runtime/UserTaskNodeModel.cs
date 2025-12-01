@@ -15,7 +15,7 @@ namespace HrgWeb.Business.WorkflowEngine.Runtime
         {
         }
 
-        public UserTaskNodeModel(ProcessNodeDefinition definition, IClock clock)
+        public UserTaskNodeModel(ProcessNode definition, IClock clock)
             : base(definition, clock)
         {
             RegistrationType = ReadRegistrationType(definition);
@@ -36,7 +36,7 @@ namespace HrgWeb.Business.WorkflowEngine.Runtime
             };
         }
 
-        private static UserTaskRegistrationType ReadRegistrationType(ProcessNodeDefinition definition)
+        private static UserTaskRegistrationType ReadRegistrationType(ProcessNode definition)
         {
             if (definition != null && definition.Settings.TryGetValue(RegistrationTypeKey, out string value))
             {
@@ -49,7 +49,7 @@ namespace HrgWeb.Business.WorkflowEngine.Runtime
             return UserTaskRegistrationType.None;
         }
 
-        private static bool ReadIsStartTask(ProcessNodeDefinition definition)
+        private static bool ReadIsStartTask(ProcessNode definition)
         {
             if (definition != null && definition.Settings.TryGetValue(IsStartTaskKey, out string value))
             {

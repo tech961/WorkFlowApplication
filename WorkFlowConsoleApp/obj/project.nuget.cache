@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "nAk92DebTuHpl50I2zJ8FbT+3b8WNsHE28WXqali0ciKWzhgCYGG19L7sDpLSIyaw0+7RMTBq/QNvpUfEAnTkw==",
+  "success": true,
+  "projectFilePath": "D:\\Temp\\New folder (11)\\New folder (3)\\WorkFlowApplication\\WorkFlowConsoleApp\\WorkFlowConsoleApp.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\E.jadidi\\.nuget\\packages\\dapper\\2.1.35\\dapper.2.1.35.nupkg.sha512"
+  ],
+  "logs": []
+}

@@ -11,7 +11,7 @@ namespace HrgWeb.Business.WorkflowEngine.Runtime
         {
         }
 
-        public EndEventNodeModel(ProcessNodeDefinition definition, IClock clock)
+        public EndEventNodeModel(ProcessNode definition, IClock clock)
             : base(definition, clock)
         {
         }

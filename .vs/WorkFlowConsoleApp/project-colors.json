@@ -10,7 +10,12 @@
       "ProjectGuid": "3677ab45-8cb0-4f9e-bd5e-7bbf6b9250d2",
       "DisplayName": "SimpleWorkflowEngine",
       "ColorIndex": 1
+    },
+    "52bf13e4-a4df-4fb9-ba50-50b995a50b9c": {
+      "ProjectGuid": "52bf13e4-a4df-4fb9-ba50-50b995a50b9c",
+      "DisplayName": "HrgWeb.Business.WorkflowEngine",
+      "ColorIndex": 2
     }
   },
-  "NextColorIndex": 2
+  "NextColorIndex": 3
 }

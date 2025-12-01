@@ -1,4 +1,6 @@
-﻿namespace HrgWeb.Business.WorkflowEngine.EntityModels
+﻿using HrgWeb.Business.WorkflowEngine.DataModel;
+
+namespace HrgWeb.Business.WorkflowEngine.EntityModels
 {
     public class UserTaskNode
     {

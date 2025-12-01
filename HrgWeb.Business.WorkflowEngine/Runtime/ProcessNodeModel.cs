@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using HrgWeb.Business.WorkflowEngine.DataModel;
 using HrgWeb.Business.WorkflowEngine.EntityModels;
+using HrgWeb.Business.WorkflowEngine.Models;
 using HrgWeb.Business.WorkflowEngine.Support;
 
 namespace HrgWeb.Business.WorkflowEngine.Runtime
@@ -14,7 +15,7 @@ namespace HrgWeb.Business.WorkflowEngine.Runtime
         {
         }
 
-        protected ProcessNodeModel(ProcessNodeDefinition definition, IClock clock)
+        protected ProcessNodeModel(ProcessNode definition, IClock clock)
         {
             Clock = clock ?? throw new ArgumentNullException(nameof(clock));
             Transitions = new List<NodeTransition>();
@@ -24,9 +25,9 @@ namespace HrgWeb.Business.WorkflowEngine.Runtime
 
             if (definition != null)
             {
-                ID = definition.Id;
+                ID = definition.ID;
                 Name = definition.Name;
-                NodeKind = definition.Kind;
+                NodeKind = definition.NodeKind;
                 foreach (KeyValuePair<string, string> setting in definition.Settings)
                 {
                     Settings[setting.Key] = setting.Value;
@@ -51,6 +52,8 @@ namespace HrgWeb.Business.WorkflowEngine.Runtime
         public IList<NodeTransition> Transitions { get; }
 
         public IList<ProcessNodeModel> PreviousNodes { get; }
+
+        public ProcessModel Process { get; set; }
 
         public virtual ProcessExecutionStep CreateStep(ProcessInstance instance, IExecutionContext context)
         {

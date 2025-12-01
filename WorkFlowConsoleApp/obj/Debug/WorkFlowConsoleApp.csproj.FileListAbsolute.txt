@@ -1,0 +1,3 @@
+D:\Temp\New folder (11)\New folder (3)\WorkFlowApplication\WorkFlowConsoleApp\obj\Debug\WorkFlowConsoleApp.csproj.AssemblyReference.cache
+D:\Temp\New folder (11)\New folder (3)\WorkFlowApplication\WorkFlowConsoleApp\obj\Debug\WorkFlowConsoleApp.csproj.SuggestedBindingRedirects.cache
+D:\Temp\New folder (11)\New folder (3)\WorkFlowApplication\WorkFlowConsoleApp\obj\Debug\WorkFlowConsoleApp.csproj.CoreCompileInputs.cache

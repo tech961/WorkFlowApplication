@@ -1,0 +1,2 @@
+D:\Temp\New folder (11)\New folder (3)\WorkFlowApplication\HrgWeb.Business.WorkflowEngine\obj\Debug\HrgWeb.Business.WorkflowEngine.csproj.AssemblyReference.cache
+D:\Temp\New folder (11)\New folder (3)\WorkFlowApplication\HrgWeb.Business.WorkflowEngine\obj\Debug\HrgWeb.Business.WorkflowEngine.csproj.CoreCompileInputs.cache

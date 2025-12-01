@@ -1,25 +1,20 @@
 using System;
 using System.Collections.Generic;
-using System.Data.Entity;
 using System.Globalization;
 using System.Linq;
 using HrgWeb.Business.WorkflowEngine.Context;
+using HrgWeb.Business.WorkflowEngine.DataModel;
 
 namespace HrgWeb.Business.WorkflowEngine.EntityModels
 {
     public sealed class WorkflowSystemContext
     {
-        private readonly HrgWebDevEntities _dbContext;
+        private readonly WorkFlowDbContext _dbContext;
         private readonly IList<Process> _processes;
 
         public WorkflowSystemContext()
-            : this("name=HrgWebDevEntities")
         {
-        }
-
-        public WorkflowSystemContext(string connectionString)
-        {
-            _dbContext = new HrgWebDevEntities(connectionString);
+            _dbContext = new WorkFlowDbContext();
             _processes = LoadProcessesFromDatabase();
         }
 
@@ -153,12 +148,6 @@ namespace HrgWeb.Business.WorkflowEngine.EntityModels
         private IList<Process> LoadProcessesFromDatabase()
         {
             var processes = _dbContext.MD_Process_m
-                .Include(process => process.MD_ProcessNode_m.Select(node => node.MD_ForkNextProcessNode_m))
-                .Include(process => process.MD_ProcessNode_m.Select(node => node.MD_ProcessNodeKind_h))
-                .Include(process => process.MD_ProcessNode_m.Select(node => node.MD_UserTaskNode_m.MD_UserTaskRegistrationType_h))
-                .Include(process => process.MD_ProcessNode_m.Select(node => node.MD_TimerNode_m))
-                .Include(process => process.MD_ProcessNode_m.Select(node => node.MD_ServiceTaskNode_m))
-                .Include(process => process.MD_VoucherKind_h)
                 .ToList();
 
             var result = new List<Process>();
@@ -183,8 +172,7 @@ namespace HrgWeb.Business.WorkflowEngine.EntityModels
                 RegDate = ParseDate(dbProcess.RegDate) ?? DateTime.UtcNow,
                 ModifyUserID = dbProcess.ModifyUserID,
                 ModifyDate = ParseDate(dbProcess.ModifyDate),
-                RegCompanyID = dbProcess.RegCompanyID,
-                VoucherKind = MapVoucherKind(dbProcess.MD_VoucherKind_h)
+                RegCompanyID = dbProcess.RegCompanyID
             };
 
             var nodeLookup = new Dictionary<int, ProcessNode>();
@@ -242,12 +230,7 @@ namespace HrgWeb.Business.WorkflowEngine.EntityModels
                 NextProcessNodeID = dbNode.NextProcessNodeID,
                 DesignerLocation = dbNode.DesignerLocation,
                 DesignerLinkPath = dbNode.DesignerLinkPath,
-                RegUserID = dbNode.RegUserID,
-                RegDate = ParseDate(dbNode.RegDate) ?? DateTime.UtcNow,
-                ModifyUserID = dbNode.ModifyUserID,
-                ModifyDate = ParseDate(dbNode.ModifyDate),
-                RegCompanyID = dbNode.RegCompanyID,
-                NodeKind = MapNodeKind(dbNode.MD_ProcessNodeKind_h)
+                NodeKind = (ProcessNodeKind)dbNode.NodeKindID
             };
 
             if (dbNode.MD_TimerNode_m != null)
@@ -269,22 +252,6 @@ namespace HrgWeb.Business.WorkflowEngine.EntityModels
             return node;
         }
 
-        private ProcessNodeKind MapNodeKind(MD_ProcessNodeKind_h dbKind)
-        {
-            if (dbKind == null)
-            {
-                return null;
-            }
-
-            return new ProcessNodeKind
-            {
-                ID = dbKind.ID,
-                Name = dbKind.Name,
-                Type = dbKind.Type.HasValue ? (ProcessNodeType?)dbKind.Type.Value : null,
-                TypeDesc = dbKind.TypeDesc,
-                Remark = dbKind.Remark
-            };
-        }
 
         private VoucherKind MapVoucherKind(MD_VoucherKind_h dbVoucher)
         {

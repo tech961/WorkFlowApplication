@@ -1,0 +1,194 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs">
+  <EntityContainerMapping StorageEntityContainer="HrgWebDevModelStoreContainer" CdmEntityContainer="WorkFlowDbContext">
+    <EntitySetMapping Name="MD_EndEventNode_m">
+      <EntityTypeMapping TypeName="HrgWebDevModel.MD_EndEventNode_m">
+        <MappingFragment StoreEntitySet="MD_EndEventNode_m">
+          <ScalarProperty Name="ID" ColumnName="ID" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="MD_ForkNextProcessNode_m">
+      <EntityTypeMapping TypeName="HrgWebDevModel.MD_ForkNextProcessNode_m">
+        <MappingFragment StoreEntitySet="MD_ForkNextProcessNode_m">
+          <ScalarProperty Name="ID" ColumnName="ID" />
+          <ScalarProperty Name="ForkNodeID" ColumnName="ForkNodeID" />
+          <ScalarProperty Name="NextProcessNodeID" ColumnName="NextProcessNodeID" />
+          <ScalarProperty Name="Title" ColumnName="Title" />
+          <ScalarProperty Name="Condition" ColumnName="Condition" />
+          <ScalarProperty Name="DesignerLinkPath" ColumnName="DesignerLinkPath" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="MD_ForkNode_m">
+      <EntityTypeMapping TypeName="HrgWebDevModel.MD_ForkNode_m">
+        <MappingFragment StoreEntitySet="MD_ForkNode_m">
+          <ScalarProperty Name="ID" ColumnName="ID" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="MD_JoinNode_m">
+      <EntityTypeMapping TypeName="HrgWebDevModel.MD_JoinNode_m">
+        <MappingFragment StoreEntitySet="MD_JoinNode_m">
+          <ScalarProperty Name="ID" ColumnName="ID" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="MD_JoinPreviousProcessNode_m">
+      <EntityTypeMapping TypeName="HrgWebDevModel.MD_JoinPreviousProcessNode_m">
+        <MappingFragment StoreEntitySet="MD_JoinPreviousProcessNode_m">
+          <ScalarProperty Name="ID" ColumnName="ID" />
+          <ScalarProperty Name="JoinNodeID" ColumnName="JoinNodeID" />
+          <ScalarProperty Name="PreviousProcessNodeID" ColumnName="PreviousProcessNodeID" />
+          <ScalarProperty Name="Title" ColumnName="Title" />
+          <ScalarProperty Name="IsOptional" ColumnName="IsOptional" />
+          <ScalarProperty Name="OptionalCondition" ColumnName="OptionalCondition" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="MD_Process_m">
+      <EntityTypeMapping TypeName="HrgWebDevModel.MD_Process_m">
+        <MappingFragment StoreEntitySet="MD_Process_m">
+          <ScalarProperty Name="ID" ColumnName="ID" />
+          <ScalarProperty Name="Name" ColumnName="Name" />
+          <ScalarProperty Name="VoucherKindID" ColumnName="VoucherKindID" />
+          <ScalarProperty Name="Version" ColumnName="Version" />
+          <ScalarProperty Name="Active" ColumnName="Active" />
+          <ScalarProperty Name="RegUserID" ColumnName="RegUserID" />
+          <ScalarProperty Name="RegDate" ColumnName="RegDate" />
+          <ScalarProperty Name="ModifyUserID" ColumnName="ModifyUserID" />
+          <ScalarProperty Name="ModifyDate" ColumnName="ModifyDate" />
+          <ScalarProperty Name="RegCompanyID" ColumnName="RegCompanyID" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="MD_ProcessNode_m">
+      <EntityTypeMapping TypeName="HrgWebDevModel.MD_ProcessNode_m">
+        <MappingFragment StoreEntitySet="MD_ProcessNode_m">
+          <ScalarProperty Name="ID" ColumnName="ID" />
+          <ScalarProperty Name="Name" ColumnName="Name" />
+          <ScalarProperty Name="ProcessID" ColumnName="ProcessID" />
+          <ScalarProperty Name="NodeKindID" ColumnName="NodeKindID" />
+          <ScalarProperty Name="NextProcessNodeID" ColumnName="NextProcessNodeID" />
+          <ScalarProperty Name="DesignerLocation" ColumnName="DesignerLocation" />
+          <ScalarProperty Name="DesignerLinkPath" ColumnName="DesignerLinkPath" />
+          <ScalarProperty Name="RegUserID" ColumnName="RegUserID" />
+          <ScalarProperty Name="RegDate" ColumnName="RegDate" />
+          <ScalarProperty Name="ModifyUserID" ColumnName="ModifyUserID" />
+          <ScalarProperty Name="ModifyDate" ColumnName="ModifyDate" />
+          <ScalarProperty Name="RegCompanyID" ColumnName="RegCompanyID" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="MD_ProcessNodeKind_h">
+      <EntityTypeMapping TypeName="HrgWebDevModel.MD_ProcessNodeKind_h">
+        <MappingFragment StoreEntitySet="MD_ProcessNodeKind_h">
+          <ScalarProperty Name="ID" ColumnName="ID" />
+          <ScalarProperty Name="Name" ColumnName="Name" />
+          <ScalarProperty Name="Type" ColumnName="Type" />
+          <ScalarProperty Name="TypeDesc" ColumnName="TypeDesc" />
+          <ScalarProperty Name="Remark" ColumnName="Remark" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="MD_ServiceTaskNode_m">
+      <EntityTypeMapping TypeName="HrgWebDevModel.MD_ServiceTaskNode_m">
+        <MappingFragment StoreEntitySet="MD_ServiceTaskNode_m">
+          <ScalarProperty Name="ID" ColumnName="ID" />
+          <ScalarProperty Name="TypeId" ColumnName="TypeId" />
+          <ScalarProperty Name="Metadata" ColumnName="Metadata" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="MD_StartEventNode_m">
+      <EntityTypeMapping TypeName="HrgWebDevModel.MD_StartEventNode_m">
+        <MappingFragment StoreEntitySet="MD_StartEventNode_m">
+          <ScalarProperty Name="ID" ColumnName="ID" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="MD_TimerNode_m">
+      <EntityTypeMapping TypeName="HrgWebDevModel.MD_TimerNode_m">
+        <MappingFragment StoreEntitySet="MD_TimerNode_m">
+          <ScalarProperty Name="ID" ColumnName="ID" />
+          <ScalarProperty Name="DelayDateTimeExpression" ColumnName="DelayDateTimeExpression" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="MD_UserTaskNode_m">
+      <EntityTypeMapping TypeName="HrgWebDevModel.MD_UserTaskNode_m">
+        <MappingFragment StoreEntitySet="MD_UserTaskNode_m">
+          <ScalarProperty Name="ID" ColumnName="ID" />
+          <ScalarProperty Name="RegistrationTypeID" ColumnName="RegistrationTypeID" />
+          <ScalarProperty Name="IsStartTask" ColumnName="IsStartTask" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="MD_UserTaskRegistrationType_h">
+      <EntityTypeMapping TypeName="HrgWebDevModel.MD_UserTaskRegistrationType_h">
+        <MappingFragment StoreEntitySet="MD_UserTaskRegistrationType_h">
+          <ScalarProperty Name="ID" ColumnName="ID" />
+          <ScalarProperty Name="Name" ColumnName="Name" />
+          <ScalarProperty Name="Remark" ColumnName="Remark" />
+          <ScalarProperty Name="Type" ColumnName="Type" />
+          <ScalarProperty Name="TypeDesc" ColumnName="TypeDesc" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="MD_VoucherKind_h">
+      <EntityTypeMapping TypeName="HrgWebDevModel.MD_VoucherKind_h">
+        <MappingFragment StoreEntitySet="MD_VoucherKind_h">
+          <ScalarProperty Name="ID" ColumnName="ID" />
+          <ScalarProperty Name="Name" ColumnName="Name" />
+          <ScalarProperty Name="Remark" ColumnName="Remark" />
+          <ScalarProperty Name="Type" ColumnName="Type" />
+          <ScalarProperty Name="TypeDesc" ColumnName="TypeDesc" />
+          <ScalarProperty Name="AttachFormUrlID" ColumnName="AttachFormUrlID" />
+          <ScalarProperty Name="IconEnum" ColumnName="IconEnum" />
+          <ScalarProperty Name="WorkSheetPermissionItemID" ColumnName="WorkSheetPermissionItemID" />
+          <ScalarProperty Name="ServiceAssemblyName" ColumnName="ServiceAssemblyName" />
+          <ScalarProperty Name="GetMethodName" ColumnName="GetMethodName" />
+          <ScalarProperty Name="LatinName" ColumnName="LatinName" />
+          <ScalarProperty Name="ClientCenter" ColumnName="ClientCenter" />
+          <ScalarProperty Name="Company" ColumnName="Company" />
+          <ScalarProperty Name="IsGoverment" ColumnName="IsGoverment" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="WF_Process_m">
+      <EntityTypeMapping TypeName="HrgWebDevModel.WF_Process_m">
+        <MappingFragment StoreEntitySet="WF_Process_m">
+          <ScalarProperty Name="ID" ColumnName="ID" />
+          <ScalarProperty Name="ProcessMetaDataID" ColumnName="ProcessMetaDataID" />
+          <ScalarProperty Name="VoucherRowID" ColumnName="VoucherRowID" />
+          <ScalarProperty Name="Closed" ColumnName="Closed" />
+          <ScalarProperty Name="RegUserID" ColumnName="RegUserID" />
+          <ScalarProperty Name="RegDate" ColumnName="RegDate" />
+          <ScalarProperty Name="ModifyUserID" ColumnName="ModifyUserID" />
+          <ScalarProperty Name="ModifyDate" ColumnName="ModifyDate" />
+          <ScalarProperty Name="RegCompanyID" ColumnName="RegCompanyID" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="WF_ProcessExecutionStep_m">
+      <EntityTypeMapping TypeName="HrgWebDevModel.WF_ProcessExecutionStep_m">
+        <MappingFragment StoreEntitySet="WF_ProcessExecutionStep_m">
+          <ScalarProperty Name="ID" ColumnName="ID" />
+          <ScalarProperty Name="ProcessID" ColumnName="ProcessID" />
+          <ScalarProperty Name="ProcessNodeID" ColumnName="ProcessNodeID" />
+          <ScalarProperty Name="PathID" ColumnName="PathID" />
+          <ScalarProperty Name="Done" ColumnName="Done" />
+          <ScalarProperty Name="RegisterDateTime" ColumnName="RegisterDateTime" />
+          <ScalarProperty Name="DoneDateTime" ColumnName="DoneDateTime" />
+          <ScalarProperty Name="PreviousExecutionStepID" ColumnName="PreviousExecutionStepID" />
+          <ScalarProperty Name="Data" ColumnName="Data" />
+          <ScalarProperty Name="RegUserID" ColumnName="RegUserID" />
+          <ScalarProperty Name="RegDate" ColumnName="RegDate" />
+          <ScalarProperty Name="ModifyUserID" ColumnName="ModifyUserID" />
+          <ScalarProperty Name="ModifyDate" ColumnName="ModifyDate" />
+          <ScalarProperty Name="RegCompanyID" ColumnName="RegCompanyID" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+  </EntityContainerMapping>
+</Mapping>

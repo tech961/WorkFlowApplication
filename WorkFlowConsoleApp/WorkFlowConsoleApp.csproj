@@ -61,6 +61,12 @@
   <ItemGroup>
     <PackageReference Include="Dapper" Version="2.1.35" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\HrgWeb.Business.WorkflowEngine\HrgWeb.Business.WorkflowEngine.csproj">
+      <Project>{52BF13E4-A4DF-4FB9-BA50-50B995A50B9C}</Project>
+      <Name>HrgWeb.Business.WorkflowEngine</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(MSBuildExtensionsPath)\Microsoft\NuGet\Microsoft.NuGet.targets" Condition="Exists('$(MSBuildExtensionsPath)\Microsoft\NuGet\Microsoft.NuGet.targets')" />
 </Project>

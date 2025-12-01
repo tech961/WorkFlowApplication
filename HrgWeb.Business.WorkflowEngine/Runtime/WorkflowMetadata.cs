@@ -2,14 +2,11 @@ namespace HrgWeb.Business.WorkflowEngine.Runtime
 {
     public class WorkflowMetadata : IWorkflowMetadata
     {
-        public WorkflowMetadata(string key, object value)
+        public WorkflowMetadata(int id)
         {
-            Key = key;
-            Value = value;
+            ID = id;
         }
 
-        public string Key { get; }
-
-        public object Value { get; }
+        public int ID { get; set; }
     }
 }
