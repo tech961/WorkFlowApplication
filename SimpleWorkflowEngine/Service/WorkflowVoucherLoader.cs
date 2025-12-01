@@ -35,7 +35,7 @@ namespace HrgWeb.Business.WorkflowEngine.Service
                 _vouchersByKind[voucher.Kind] = bucket;
             }
 
-            bucket[voucher.Id] = voucher;
+            bucket[voucher.ID] = voucher;
         }
 
         public IWorkflowVoucher GetWorkflowVoucher(int voucherId, int voucherKind)

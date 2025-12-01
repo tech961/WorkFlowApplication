@@ -63,7 +63,7 @@ namespace HrgWeb.Business.WorkflowEngine.Service
             foreach (ProcessNodeModel node in nodes)
             {
                 IDictionary<string, object> metadata;
-                if (_metadataByNodeId.TryGetValue(node.Id, out metadata))
+                if (_metadataByNodeId.TryGetValue(node.ID, out metadata))
                 {
                     ApplyMetadata(node, metadata);
                 }
