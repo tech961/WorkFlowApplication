@@ -26,7 +26,7 @@ namespace HrgWeb.Business.WorkflowEngine.Models
                 node.Process = this;
             }
 
-            _nodesById = compiledNodes.ToDictionary(node => node.Id);
+            _nodesById = compiledNodes.ToDictionary(node => node.ID);
             Nodes = compiledNodes;
             StartNode = compiledNodes.OfType<StartEventNodeModel>().Single();
         }

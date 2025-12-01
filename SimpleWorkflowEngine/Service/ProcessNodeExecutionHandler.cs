@@ -31,9 +31,9 @@ namespace HrgWeb.Business.WorkflowEngine.Service
                 throw new InvalidOperationException("The execution context must provide a non-null Items dictionary.");
             }
 
-            context.Items[NodeIdKey] = processNode.Id;
+            context.Items[NodeIdKey] = processNode.ID;
             context.Items[NodeNameKey] = processNode.Name;
-            context.Items[NodeKindKey] = processNode.Kind;
+            context.Items[NodeKindKey] = processNode.NodeKind;
 
             CopyMetadataToContext(context.Items, processNode.Metadata);
         }

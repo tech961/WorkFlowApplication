@@ -16,6 +16,8 @@ namespace HrgWeb.Business.WorkflowEngine.Runtime
 
         IWorkflowVoucher Voucher { get; }
 
+        IDictionary<string, object> Items { get; }
+
         IEnumerable<IWorkflowMetadata> WorkflowData { get; set; }
 
         Guid StepId { get; set; }
