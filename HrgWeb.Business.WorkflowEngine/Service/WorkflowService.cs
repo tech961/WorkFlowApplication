@@ -105,7 +105,7 @@ namespace HrgWeb.Business.WorkflowEngine.Service
                 throw new InvalidOperationException("The execution context must provide a workflow voucher.");
             }
 
-            return _engine.GetPendingUserTasks(voucher.Kind, voucher.ID);
+            return _engine.GetPendingUserTasks(voucher.ID);
         }
 
         public void ExecuteUserTask(IExecutionContext executionContext)

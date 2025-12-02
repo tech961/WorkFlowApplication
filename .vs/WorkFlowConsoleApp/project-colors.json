@@ -15,6 +15,11 @@
       "ProjectGuid": "52bf13e4-a4df-4fb9-ba50-50b995a50b9c",
       "DisplayName": "HrgWeb.Business.WorkflowEngine",
       "ColorIndex": 2
+    },
+    "a2fe74e1-b743-11d0-ae1a-00a0c90fffc3": {
+      "ProjectGuid": "a2fe74e1-b743-11d0-ae1a-00a0c90fffc3",
+      "DisplayName": "Miscellaneous Files",
+      "ColorIndex": -1
     }
   },
   "NextColorIndex": 3

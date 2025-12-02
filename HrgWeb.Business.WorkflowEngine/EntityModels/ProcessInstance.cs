@@ -24,7 +24,7 @@ namespace HrgWeb.Business.WorkflowEngine.EntityModels
             set => ProcessID = value;
         }
 
-        public int VoucherKindID { get; set; }
+        public int VoucherID { get; set; }
 
         public bool IsClosed { get; set; }
 

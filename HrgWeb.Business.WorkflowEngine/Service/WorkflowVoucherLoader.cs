@@ -29,10 +29,10 @@ namespace HrgWeb.Business.WorkflowEngine.Service
             }
 
             IDictionary<int, IWorkflowVoucher> bucket;
-            if (!_vouchersByKind.TryGetValue(voucher.Kind, out bucket))
+            if (!_vouchersByKind.TryGetValue(voucher.ID, out bucket))
             {
                 bucket = new Dictionary<int, IWorkflowVoucher>();
-                _vouchersByKind[voucher.Kind] = bucket;
+                _vouchersByKind[voucher.ID] = bucket;
             }
 
             bucket[voucher.ID] = voucher;

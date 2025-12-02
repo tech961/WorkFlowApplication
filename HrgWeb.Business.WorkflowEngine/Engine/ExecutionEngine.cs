@@ -104,7 +104,7 @@ namespace HrgWeb.Business.WorkflowEngine.Engine
             ExecuteNode(process, instance, process.StartNode, context, previousStep: null);
         }
 
-        public IEnumerable<UserTaskNodeModel> GetPendingUserTasks(int voucherKind, int voucherId)
+        public IEnumerable<UserTaskNodeModel> GetPendingUserTasks(int voucherId)
         {
             return _context.ExecutionSteps
                 .Where(step => !step.IsCompleted)
@@ -113,7 +113,7 @@ namespace HrgWeb.Business.WorkflowEngine.Engine
                     Step = step,
                     Instance = _context.GetInstance(step.ProcessInstanceId)
                 })
-                .Where(pair => pair.Instance.VoucherKindID == voucherKind)
+                .Where(pair => pair.Instance.VoucherID == voucherId)
                 .Select(pair => new
                 {
                     pair.Step,

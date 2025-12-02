@@ -285,7 +285,7 @@ namespace HrgWeb.Business.WorkflowEngine.EntityModels
             {
                 ID = entity.ID,
                 ProcessID = entity.ProcessMetaDataID,
-                VoucherKindID = entity.VoucherRowID,
+                VoucherID = entity.VoucherRowID,
                 IsClosed = entity.Closed,
             };
         }

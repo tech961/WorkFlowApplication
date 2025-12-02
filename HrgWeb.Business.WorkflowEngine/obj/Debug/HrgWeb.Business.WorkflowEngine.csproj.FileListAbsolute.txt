@@ -1,2 +1,12 @@
 D:\Temp\New folder (11)\New folder (3)\WorkFlowApplication\HrgWeb.Business.WorkflowEngine\obj\Debug\HrgWeb.Business.WorkflowEngine.csproj.AssemblyReference.cache
 D:\Temp\New folder (11)\New folder (3)\WorkFlowApplication\HrgWeb.Business.WorkflowEngine\obj\Debug\HrgWeb.Business.WorkflowEngine.csproj.CoreCompileInputs.cache
+D:\Temp\New folder (11)\New folder (3)\WorkFlowApplication\HrgWeb.Business.WorkflowEngine\bin\Debug\HrgWeb.Business.WorkflowEngine.dll.config
+D:\Temp\New folder (11)\New folder (3)\WorkFlowApplication\HrgWeb.Business.WorkflowEngine\bin\Debug\HrgWeb.Business.WorkflowEngine.dll
+D:\Temp\New folder (11)\New folder (3)\WorkFlowApplication\HrgWeb.Business.WorkflowEngine\bin\Debug\HrgWeb.Business.WorkflowEngine.pdb
+D:\Temp\New folder (11)\New folder (3)\WorkFlowApplication\HrgWeb.Business.WorkflowEngine\bin\Debug\EntityFramework.dll
+D:\Temp\New folder (11)\New folder (3)\WorkFlowApplication\HrgWeb.Business.WorkflowEngine\bin\Debug\EntityFramework.SqlServer.dll
+D:\Temp\New folder (11)\New folder (3)\WorkFlowApplication\HrgWeb.Business.WorkflowEngine\bin\Debug\EntityFramework.xml
+D:\Temp\New folder (11)\New folder (3)\WorkFlowApplication\HrgWeb.Business.WorkflowEngine\bin\Debug\EntityFramework.SqlServer.xml
+D:\Temp\New folder (11)\New folder (3)\WorkFlowApplication\HrgWeb.Business.WorkflowEngine\obj\Debug\HrgWeb.Business.WorkflowEngine.csproj.CopyComplete
+D:\Temp\New folder (11)\New folder (3)\WorkFlowApplication\HrgWeb.Business.WorkflowEngine\obj\Debug\HrgWeb.Business.WorkflowEngine.dll
+D:\Temp\New folder (11)\New folder (3)\WorkFlowApplication\HrgWeb.Business.WorkflowEngine\obj\Debug\HrgWeb.Business.WorkflowEngine.pdb

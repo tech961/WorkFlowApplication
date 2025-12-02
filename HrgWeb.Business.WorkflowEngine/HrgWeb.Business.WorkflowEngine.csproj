@@ -155,6 +155,7 @@
     <Compile Include="Runtime\IExecutionContext.cs" />
     <Compile Include="Runtime\IInternalExecutionContext.cs" />
     <Compile Include="Runtime\IProcessNodeModel.cs" />
+    <Compile Include="Runtime\IServiceTaskNodeModel.cs" />
     <Compile Include="Runtime\IUserTaskNodeModel.cs" />
     <Compile Include="Runtime\IWorkflowLogger.cs" />
     <Compile Include="Runtime\IWorkflowMetadata.cs" />
@@ -168,7 +169,6 @@
     <Compile Include="Runtime\UserTaskNodeModel.cs" />
     <Compile Include="Runtime\WorkflowMetadata.cs" />
     <Compile Include="Runtime\WorkflowVoucher.cs" />
-    <Compile Include="Service\DependencyResolver.cs" />
     <Compile Include="Service\ExpressionEvaluator.cs" />
     <Compile Include="Service\IExpressionEvaluator.cs" />
     <Compile Include="Service\IProcessNodeExecutionHandler.cs" />
