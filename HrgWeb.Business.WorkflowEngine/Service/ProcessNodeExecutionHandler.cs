@@ -14,7 +14,7 @@ namespace HrgWeb.Business.WorkflowEngine.Service
         private const string NodeNameKey = "CurrentNodeName";
         private const string NodeKindKey = "CurrentNodeKind";
 
-        public void Register(IExecutionContext context, ProcessNodeModel processNode)
+        public void Register(IExecutionContext context, IProcessNodeModel processNode)
         {
             if (context == null)
             {
@@ -35,10 +35,10 @@ namespace HrgWeb.Business.WorkflowEngine.Service
             context.Items[NodeNameKey] = processNode.Name;
             context.Items[NodeKindKey] = processNode.NodeKind;
 
-            CopyMetadataToContext(context.Items, processNode.Metadata);
+            //CopyMetadataToContext(context.Items, processNode.Metadata);
         }
 
-        public void Execute(IExecutionContext context, ProcessNodeModel processNode)
+        public void Execute(IExecutionContext context, IProcessNodeModel processNode)
         {
             if (context == null)
             {
@@ -55,7 +55,7 @@ namespace HrgWeb.Business.WorkflowEngine.Service
                 throw new InvalidOperationException("The execution context must provide a non-null Items dictionary.");
             }
 
-            CopyMetadataToContext(context.Items, processNode.Metadata);
+            //CopyMetadataToContext(context.Items, processNode.Metadata);
         }
 
         private static void CopyMetadataToContext(IDictionary<string, object> destination, IDictionary<string, object> metadata)

@@ -18,7 +18,9 @@ namespace HrgWeb.Business.WorkflowEngine.Runtime
 
         IDictionary<string, object> Items { get; }
 
-        IEnumerable<IWorkflowMetadata> WorkflowData { get; set; }
+        IEnumerable<IWorkflowMetadata> WorkflowDataList { get; set; }
+
+        int WorkflowData { get; set; }
 
         Guid StepId { get; set; }
 

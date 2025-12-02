@@ -5,7 +5,7 @@ using HrgWeb.Business.WorkflowEngine.Support;
 
 namespace HrgWeb.Business.WorkflowEngine.Runtime
 {
-    public class ServiceTaskNodeModel : ProcessNodeModel
+    public class ServiceTaskNodeModel : ProcessNodeModel, IServiceTaskNodeModel
     {
         public ServiceTaskNodeModel()
         {
@@ -15,6 +15,9 @@ namespace HrgWeb.Business.WorkflowEngine.Runtime
             : base(definition, clock)
         {
         }
+        
+        public int TypeId { get; set; }
+        public string MetaData { get; set; }
 
         public override NodeContinuation Continue(ProcessInstance instance, IInternalExecutionContext context, ProcessExecutionStep currentStep, IReadOnlyList<ProcessExecutionStep> previousSteps)
         {

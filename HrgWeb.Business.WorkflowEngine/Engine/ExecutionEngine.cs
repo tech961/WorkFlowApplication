@@ -285,9 +285,8 @@ namespace HrgWeb.Business.WorkflowEngine.Engine
                 CompanyId = context.CompanyId,
                 FiscalYearId = context.FiscalYearId,
                 VoucherId = context.Voucher.ID,
-                VoucherKind = context.Voucher.Kind,
-                WorkflowData = context.WorkflowData != null
-                    ? context.WorkflowData.Select(item => new WorkflowMetadata(item.ID)).ToArray()
+                WorkflowDataList = context.WorkflowDataList != null
+                    ? context.WorkflowDataList.Select(item => new WorkflowMetadata(item.ID)).ToArray()
                     : new WorkflowMetadata[0]
             };
             _scheduler.Enqueue(request);
@@ -444,7 +443,8 @@ namespace HrgWeb.Business.WorkflowEngine.Engine
 
             public int VoucherKind { get; set; }
 
-            public IReadOnlyList<WorkflowMetadata> WorkflowData { get; set; } = new WorkflowMetadata[0];
+            public int WorkflowData{ get; set; }
+            public IReadOnlyList<WorkflowMetadata> WorkflowDataList { get; set; } = new WorkflowMetadata[0];
         }
     }
 }

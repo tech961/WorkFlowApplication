@@ -1,8 +1,5 @@
 namespace HrgWeb.Business.WorkflowEngine.DataModel
 {
-    /// <summary>
-    /// Describes the type of a workflow node.
-    /// </summary>
     public enum ProcessNodeKind
     {
         None = 0,

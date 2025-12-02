@@ -5,7 +5,6 @@ namespace HrgWeb.Business.WorkflowEngine.Runtime
         int ID { get; set; }
         string Number { get; set; }
         string Date { get; set; }
-
-        int Kind { get; set; }
     }
 }
+ 

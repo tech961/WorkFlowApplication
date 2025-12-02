@@ -25,7 +25,7 @@ namespace HrgWeb.Business.WorkflowEngine.Service
         }
 
         public WorkflowService(string connectionString)
-            : this(new WorkflowSystemContext(connectionString), new SystemClock(), new ConsoleWorkflowLogger())
+            : this(new WorkflowSystemContext(), new SystemClock(), new ConsoleWorkflowLogger())
         {
             _connectionString = connectionString;
         }
@@ -88,7 +88,7 @@ namespace HrgWeb.Business.WorkflowEngine.Service
                 };
             }
 
-            internalContext.Voucher.Kind = voucherKind;
+            //internalContext.Voucher.Kind = voucherKind;
             _engine.StartProcessInstance(voucherKind, internalContext);
         }
 

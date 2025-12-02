@@ -54,7 +54,7 @@ namespace HrgWeb.Business.WorkflowEngine.Service
             metadata[key] = value;
         }
 
-        public void LoadMetadata(IEnumerable<ProcessNodeModel> nodes)
+        public void LoadMetadata(IEnumerable<IProcessNodeModel> nodes)
         {
             if (nodes == null)
             {

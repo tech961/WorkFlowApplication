@@ -14,8 +14,7 @@ namespace HrgWeb.Business.WorkflowEngine.Runtime
             CompanyId = companyId;
             FiscalYearId = fiscalYearId;
             Voucher = voucher ?? throw new ArgumentNullException(nameof(voucher));
-            Items = new Dictionary<string, object>();
-            WorkflowData = new IWorkflowMetadata[0];
+            WorkflowDataList = new IWorkflowMetadata[0];
         }
 
         public int CompanyId { get; private set; }
@@ -26,13 +25,15 @@ namespace HrgWeb.Business.WorkflowEngine.Runtime
 
         public IWorkflowVoucher Voucher { get; private set; }
 
-        public IDictionary<string, object> Items { get; private set; }
+        public IEnumerable<IWorkflowMetadata> WorkflowDataList { get; set; }
 
-        public IEnumerable<IWorkflowMetadata> WorkflowData { get; set; }
+        public int WorkflowData { get; set; }
 
         public Guid StepId { get; set; }
 
         public bool SimulationMode { get; set; }
+
+        public IDictionary<string, object> Items { get; }
 
         public IExecutionContext Initialize(int userId, int companyId, int fiscalYearId, IWorkflowVoucher workflowVoucher)
         {

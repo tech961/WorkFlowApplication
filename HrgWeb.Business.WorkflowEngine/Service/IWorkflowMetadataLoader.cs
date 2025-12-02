@@ -9,6 +9,6 @@ namespace HrgWeb.Business.WorkflowEngine.Service
     /// </summary>
     public interface IWorkflowMetadataLoader
     {
-        void LoadMetadata(IEnumerable<ProcessNodeModel> nodes);
+        void LoadMetadata(IEnumerable<IProcessNodeModel> nodes);
     }
 }

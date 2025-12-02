@@ -8,8 +8,8 @@ namespace HrgWeb.Business.WorkflowEngine.Service
     /// </summary>
     public interface IProcessNodeExecutionHandler
     {
-        void Register(IExecutionContext context, ProcessNodeModel processNode);
+        void Register(IExecutionContext context, IProcessNodeModel processNode);
 
-        void Execute(IExecutionContext context, ProcessNodeModel processNode);
+        void Execute(IExecutionContext context, IProcessNodeModel processNode);
     }
 }

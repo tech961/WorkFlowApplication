@@ -238,34 +238,12 @@ namespace HrgWeb.Business.WorkflowEngine.Service
                 return true;
             }
 
-            if (string.Equals(name, "VoucherKind", StringComparison.OrdinalIgnoreCase) || string.Equals(name, "Voucher.Kind", StringComparison.OrdinalIgnoreCase))
-            {
-                value = context.Voucher != null ? (object)context.Voucher.Kind : null;
-                return true;
-            }
-
             if (string.Equals(name, "StepId", StringComparison.OrdinalIgnoreCase))
             {
                 value = context.StepId;
                 return true;
             }
 
-            if (context.Items != null && TryGetDictionaryValue(context.Items, name, out value))
-            {
-                return true;
-            }
-
-            if (context.WorkflowData != null)
-            {
-                foreach (IWorkflowMetadata metadata in context.WorkflowData)
-                {
-                    if (string.Equals(metadata.Key, name, StringComparison.OrdinalIgnoreCase))
-                    {
-                        value = metadata.Value;
-                        return true;
-                    }
-                }
-            }
 
             return false;
         }
