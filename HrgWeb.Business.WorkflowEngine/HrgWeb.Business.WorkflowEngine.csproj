@@ -175,6 +175,7 @@
     <Compile Include="Service\IWorkflowMetadataLoader.cs" />
     <Compile Include="Service\IWorkflowService.cs" />
     <Compile Include="Service\IWorkflowVoucherLoader.cs" />
+    <Compile Include="Service\CommonStartUp.cs" />
     <Compile Include="Service\ProcessNodeExecutionHandler.cs" />
     <Compile Include="Service\WorkflowMetadataLoader.cs" />
     <Compile Include="Service\WorkflowService.cs" />
