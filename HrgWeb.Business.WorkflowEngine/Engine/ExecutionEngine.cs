@@ -97,9 +97,37 @@ namespace HrgWeb.Business.WorkflowEngine.Engine
             }
         }
 
+        public void LoadProcessDefinitions(int voucherKind, IInternalExecutionContext context)
+        {
+            var activeProcess = _context.ActiveProcess(voucherKind, context);
+
+            _processesByVoucherKind.Clear();
+            _processesById.Clear();
+
+            ProcessModel model = CompileProcess(activeProcess);
+            if (!_processesByVoucherKind.TryGetValue(activeProcess.VoucherKindID, out List<ProcessModel> list))
+            {
+                list = new List<ProcessModel>();
+                _processesByVoucherKind.Add(activeProcess.VoucherKindID, list);
+            }
+
+            list.RemoveAll(existing => existing.Definition.Version == activeProcess.Version);
+            list.Add(model);
+            list.Sort((left, right) => left.Definition.Version.CompareTo(right.Definition.Version));
+            _processesById[activeProcess.ID] = model;
+
+            foreach (IWorkflowMetadataLoader loader in _metadataLoaders)
+            {
+                loader.LoadMetadata(model.Nodes);
+            }
+        }
+
+
+
         public void StartProcessInstance(int voucherKind, IInternalExecutionContext context)
         {
-            ProcessModel process = GetActiveProcessModel(voucherKind);
+            LoadProcessDefinitions(voucherKind, context);
+            ProcessModel process = GetActiveProcessModel(voucherKind, context);
             ProcessInstance instance = _context.CreateInstance(process.Definition);
             ExecuteNode(process, instance, process.StartNode, context, previousStep: null);
         }
@@ -206,7 +234,7 @@ namespace HrgWeb.Business.WorkflowEngine.Engine
             }
         }
 
-        private ProcessModel GetActiveProcessModel(int voucherKind)
+        private ProcessModel GetActiveProcessModel(int voucherKind, IInternalExecutionContext context)
         {
             if (!_processesByVoucherKind.TryGetValue(voucherKind, out List<ProcessModel> list) || list.Count == 0)
             {
@@ -304,9 +332,14 @@ namespace HrgWeb.Business.WorkflowEngine.Engine
             }
 
             var voucher = new WorkflowVoucher(request.VoucherId, "1", "", request.VoucherKind);
-            var resumeContext = new ExecutionContext(request.UserId, request.CompanyId, request.FiscalYearId, voucher)
+            var resumeContext = new ExecutionContext()
             {
+                UserId = request.UserId,
+                CompanyId = request.CompanyId,
+                FiscalYearId = request.FiscalYearId,
+                Voucher = voucher,
                 WorkflowData = request.WorkflowData,
+                WorkflowDataList = request.WorkflowDataList,
                 StepId = request.StepId
             };
 
@@ -443,8 +476,16 @@ namespace HrgWeb.Business.WorkflowEngine.Engine
 
             public int VoucherKind { get; set; }
 
-            public int WorkflowData{ get; set; }
+            public int WorkflowData { get; set; }
             public IReadOnlyList<WorkflowMetadata> WorkflowDataList { get; set; } = new WorkflowMetadata[0];
         }
+        private void EnsureProcessDefinitionsLoaded()
+        {
+            if (_processesByVoucherKind.Count == 0 || _processesById.Count == 0)
+            {
+                LoadProcessDefinitions(_context.Processes);
+            }
+        }
+
     }
 }

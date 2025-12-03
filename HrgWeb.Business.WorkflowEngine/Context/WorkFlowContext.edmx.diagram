@@ -4,6 +4,42 @@
   <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
     <!-- Diagram content (shape and connector positions) -->
     <edmx:Diagrams>
+      <Diagram DiagramId="c3597a9b9aee4b4fa6b1eb4ccfeafae7" Name="Diagram1">
+        <EntityTypeShape EntityType="HrgWebDevModel.MD_EndEventNode_m" Width="1.5" PointX="7.5" PointY="9.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="HrgWebDevModel.MD_ForkNextProcessNode_m" Width="1.5" PointX="9.75" PointY="16.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="HrgWebDevModel.MD_ForkNode_m" Width="1.5" PointX="7.5" PointY="15.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="HrgWebDevModel.MD_JoinNode_m" Width="1.5" PointX="7.5" PointY="17.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="HrgWebDevModel.MD_JoinPreviousProcessNode_m" Width="1.5" PointX="7.5" PointY="19.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="HrgWebDevModel.MD_Process_m" Width="1.5" PointX="3" PointY="16" IsExpanded="true" />
+        <EntityTypeShape EntityType="HrgWebDevModel.MD_ProcessNode_m" Width="1.5" PointX="5.25" PointY="14.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="HrgWebDevModel.MD_ProcessNodeKind_h" Width="1.5" PointX="3" PointY="12.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="HrgWebDevModel.MD_ServiceTaskNode_m" Width="1.5" PointX="7.5" PointY="22.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="HrgWebDevModel.MD_StartEventNode_m" Width="1.5" PointX="7.5" PointY="25.375" IsExpanded="true" />
+        <EntityTypeShape EntityType="HrgWebDevModel.MD_TimerNode_m" Width="1.5" PointX="7.5" PointY="27.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="HrgWebDevModel.MD_UserTaskNode_m" Width="1.5" PointX="10.5" PointY="13.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="HrgWebDevModel.MD_UserTaskRegistrationType_h" Width="1.5" PointX="8.25" PointY="6.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="HrgWebDevModel.MD_VoucherKind_h" Width="1.5" PointX="0.75" PointY="15.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="HrgWebDevModel.WF_Process_m" Width="1.5" PointX="5.25" PointY="33" IsExpanded="true" />
+        <EntityTypeShape EntityType="HrgWebDevModel.WF_ProcessExecutionStep_m" Width="1.5" PointX="10.5" PointY="23.375" IsExpanded="true" />
+        <AssociationConnector Association="HrgWebDevModel.FK_MD_EndEventNode_m_MD_ProcessNode_m" ManuallyRouted="false" />
+        <AssociationConnector Association="HrgWebDevModel.FK_MD_ForkNextProcessNode_m_MD_ForkNode_m" ManuallyRouted="false" />
+        <AssociationConnector Association="HrgWebDevModel.FK_MD_ForkNextProcessNode_m_MD_ProcessNode_m" ManuallyRouted="false" />
+        <AssociationConnector Association="HrgWebDevModel.FK_MD_ForkNode_m_MD_ProcessNode_m1" ManuallyRouted="false" />
+        <AssociationConnector Association="HrgWebDevModel.FK_MD_JoinNode_m_MD_ProcessNode_m1" ManuallyRouted="false" />
+        <AssociationConnector Association="HrgWebDevModel.FK_MD_JoinPreviousProcessNode_m_MD_ProcessNode_m" ManuallyRouted="false" />
+        <AssociationConnector Association="HrgWebDevModel.FK_MD_Process_m_MD_VoucherKind_h" ManuallyRouted="false" />
+        <AssociationConnector Association="HrgWebDevModel.FK_MD_ProcessNode_m_MD_Process_m" ManuallyRouted="false" />
+        <AssociationConnector Association="HrgWebDevModel.FK_WF_Process_m_MD_Process_m" ManuallyRouted="false" />
+        <AssociationConnector Association="HrgWebDevModel.FK_MD_ProcessNode_m_MD_ProcessNode_m" ManuallyRouted="false" />
+        <AssociationConnector Association="HrgWebDevModel.FK_MD_ProcessNode_m_MD_ProcessNodeKind_h" ManuallyRouted="false" />
+        <AssociationConnector Association="HrgWebDevModel.FK_MD_ServiceTaskNode_m_MD_ProcessNode_m" ManuallyRouted="false" />
+        <AssociationConnector Association="HrgWebDevModel.FK_MD_StartEventNode_m_MD_ProcessNode_m" ManuallyRouted="false" />
+        <AssociationConnector Association="HrgWebDevModel.FK_MD_TimerNode_m_MD_ProcessNode_m" ManuallyRouted="false" />
+        <AssociationConnector Association="HrgWebDevModel.FK_MD_UserTaskNode_m_MD_ProcessNode_m" ManuallyRouted="false" />
+        <AssociationConnector Association="HrgWebDevModel.FK_WF_ProcessExecutionStep_m_MD_ProcessNode_m" ManuallyRouted="false" />
+        <AssociationConnector Association="HrgWebDevModel.FK_MD_UserTaskNode_m_MD_UserTaskRegistrationType_h" ManuallyRouted="false" />
+        <AssociationConnector Association="HrgWebDevModel.FK_WF_ProcessExecutionStep_m_WF_Process_m" ManuallyRouted="false" />
+      </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>
 </edmx:Edmx>

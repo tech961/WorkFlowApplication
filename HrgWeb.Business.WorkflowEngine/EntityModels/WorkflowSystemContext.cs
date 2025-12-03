@@ -2,20 +2,23 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using HrgWeb.Business.Workflow;
 using HrgWeb.Business.WorkflowEngine.Context;
 using HrgWeb.Business.WorkflowEngine.DataModel;
+using HrgWeb.Business.WorkflowEngine.Runtime;
 
 namespace HrgWeb.Business.WorkflowEngine.EntityModels
 {
     public sealed class WorkflowSystemContext
     {
-        private readonly WorkFlowDbContext _dbContext;
+        private readonly HrgWorkFlowDb _dbContext;
         private readonly IList<Process> _processes;
 
         public WorkflowSystemContext()
         {
-            _dbContext = new WorkFlowDbContext();
-            _processes = LoadProcessesFromDatabase();
+
+            _dbContext = BussinessSetting.BusinessContext;
+            //_processes = LoadProcessesFromDatabase();
         }
 
         public IEnumerable<Process> Processes => _processes;
@@ -145,7 +148,7 @@ namespace HrgWeb.Business.WorkflowEngine.EntityModels
             _dbContext.SaveChanges();
         }
 
-        private IList<Process> LoadProcessesFromDatabase()
+        public IList<Process> LoadProcessesFromDatabase()
         {
             var processes = _dbContext.MD_Process_m
                 .ToList();
@@ -157,6 +160,15 @@ namespace HrgWeb.Business.WorkflowEngine.EntityModels
             }
 
             return result;
+        }
+
+        public Process ActiveProcess(int voucherId, IInternalExecutionContext context)
+        {
+            var process = _dbContext.MD_Process_m
+                .Where(x => x.VoucherKindID == voucherId && x.Active == true)
+                .FirstOrDefault();
+
+            return MapProcess(process);
         }
 
         private Process MapProcess(MD_Process_m dbProcess)

@@ -80,11 +80,15 @@ namespace HrgWeb.Business.WorkflowEngine.Service
             if (_voucherLoader != null)
             {
                 IWorkflowVoucher voucher = _voucherLoader.GetWorkflowVoucher(internalContext.Voucher.ID, voucherKind);
-                internalContext = new ExecutionContext(internalContext.UserId, internalContext.CompanyId, internalContext.FiscalYearId, voucher)
+                internalContext = new ExecutionContext()
                 {
+                    UserId = internalContext.UserId,
                     WorkflowData = internalContext.WorkflowData,
                     StepId = internalContext.StepId,
-                    SimulationMode = internalContext.SimulationMode
+                    SimulationMode = internalContext.SimulationMode,
+                    CompanyId = internalContext.CompanyId,
+                    FiscalYearId = internalContext.FiscalYearId,
+                    Voucher = voucher
                 };
             }
 
@@ -140,9 +144,14 @@ namespace HrgWeb.Business.WorkflowEngine.Service
                 return internalContext;
             }
 
-            return new ExecutionContext(executionContext.UserId, executionContext.CompanyId, executionContext.FiscalYearId, executionContext.Voucher)
+            return new ExecutionContext()
             {
+                UserId = executionContext.UserId,
+                CompanyId = executionContext.CompanyId,
+                FiscalYearId = executionContext.FiscalYearId,
+                Voucher = executionContext.Voucher,
                 WorkflowData = executionContext.WorkflowData,
+                WorkflowDataList = executionContext.WorkflowDataList,
                 StepId = executionContext.StepId
             };
         }

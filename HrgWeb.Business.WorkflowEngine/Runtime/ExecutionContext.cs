@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace HrgWeb.Business.WorkflowEngine.Runtime
@@ -8,29 +8,24 @@ namespace HrgWeb.Business.WorkflowEngine.Runtime
     /// </summary>
     public sealed class ExecutionContext : IInternalExecutionContext
     {
-        public ExecutionContext(int userId, int companyId, int fiscalYearId, IWorkflowVoucher voucher)
+        public ExecutionContext()
         {
-            UserId = userId;
-            CompanyId = companyId;
-            FiscalYearId = fiscalYearId;
-            Voucher = voucher ?? throw new ArgumentNullException(nameof(voucher));
-            WorkflowDataList = new IWorkflowMetadata[0];
+            Items = new Dictionary<string, object>();
+            WorkflowDataList = new List<IWorkflowMetadata>();
+            StepId = Guid.NewGuid();
         }
 
-        public int CompanyId { get; private set; }
-
-        public int UserId { get; private set; }
-
-        public int FiscalYearId { get; private set; }
-
-        public IWorkflowVoucher Voucher { get; private set; }
+        public int CompanyId { get; set; }
+        public int UserId { get; set; }
+        public int FiscalYearId { get; set; }
+        public IWorkflowVoucher Voucher { get; set; }
 
         public IEnumerable<IWorkflowMetadata> WorkflowDataList { get; set; }
 
+        // اگر این اشتباهه و لازم نیست، حذفش کن
         public int WorkflowData { get; set; }
 
         public Guid StepId { get; set; }
-
         public bool SimulationMode { get; set; }
 
         public IDictionary<string, object> Items { get; }
@@ -40,7 +35,7 @@ namespace HrgWeb.Business.WorkflowEngine.Runtime
             UserId = userId;
             CompanyId = companyId;
             FiscalYearId = fiscalYearId;
-            Voucher = workflowVoucher;
+            Voucher = workflowVoucher ?? throw new ArgumentNullException(nameof(workflowVoucher));
 
             return this;
         }
