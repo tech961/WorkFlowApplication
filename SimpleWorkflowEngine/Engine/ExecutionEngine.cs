@@ -17,7 +17,7 @@ namespace HrgWeb.Business.WorkflowEngine.Engine
         private readonly WorkflowSystemContext _context;
         private readonly IClock _clock;
         private readonly TimerScheduler _scheduler;
-        private readonly IDictionary<int, List<ProcessModel>> _processesByVoucherKind;
+        private readonly IDictionary<int, ProcessModel> _processesByVoucherKind;
         private readonly IDictionary<int, ProcessModel> _processesById;
         private readonly IList<IWorkflowMetadataLoader> _metadataLoaders;
         private readonly IList<IProcessNodeExecutionHandler> _executionHandlers;
@@ -29,7 +29,7 @@ namespace HrgWeb.Business.WorkflowEngine.Engine
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _clock = clock ?? throw new ArgumentNullException(nameof(clock));
             _scheduler = new TimerScheduler(clock);
-            _processesByVoucherKind = new Dictionary<int, List<ProcessModel>>();
+            _processesByVoucherKind = new Dictionary<int, ProcessModel>();
             _processesById = new Dictionary<int, ProcessModel>();
             _metadataLoaders = new List<IWorkflowMetadataLoader>();
             _executionHandlers = new List<IProcessNodeExecutionHandler>();
@@ -77,16 +77,13 @@ namespace HrgWeb.Business.WorkflowEngine.Engine
 
             foreach (Process definition in definitions)
             {
-                ProcessModel model = CompileProcess(definition);
-                if (!_processesByVoucherKind.TryGetValue(definition.VoucherKindID, out List<ProcessModel> list))
+                if (!definition.Active)
                 {
-                    list = new List<ProcessModel>();
-                    _processesByVoucherKind.Add(definition.VoucherKindID, list);
+                    continue;
                 }
 
-                list.RemoveAll(existing => existing.Definition.Version == definition.Version);
-                list.Add(model);
-                list.Sort((left, right) => left.Definition.Version.CompareTo(right.Definition.Version));
+                ProcessModel model = CompileProcess(definition);
+                _processesByVoucherKind[definition.VoucherKindID] = model;
                 _processesById[definition.ID] = model;
 
                 foreach (IWorkflowMetadataLoader loader in _metadataLoaders)
@@ -207,18 +204,12 @@ namespace HrgWeb.Business.WorkflowEngine.Engine
 
         private ProcessModel GetActiveProcessModel(int voucherKind)
         {
-            if (!_processesByVoucherKind.TryGetValue(voucherKind, out List<ProcessModel> list) || list.Count == 0)
-            {
-                throw new InvalidOperationException($"No process definitions were loaded for voucher kind {voucherKind}.");
-            }
-
-            ProcessModel activeProcess = list.LastOrDefault(model => model.Definition.Active);
-            if (activeProcess == null)
+            if (!_processesByVoucherKind.TryGetValue(voucherKind, out ProcessModel processModel))
             {
                 throw new InvalidOperationException($"No active process definition was found for voucher kind {voucherKind}.");
             }
 
-            return activeProcess;
+            return processModel;
         }
 
         private void ExecuteNode(ProcessModel process, ProcessInstance instance, ProcessNodeModel node, IInternalExecutionContext context, ProcessExecutionStep previousStep = null)
