@@ -18,7 +18,7 @@ namespace HrgWeb.Business.WorkflowEngine.EntityModels
         {
 
             _dbContext = BussinessSetting.BusinessContext;
-            //_processes = LoadProcessesFromDatabase();
+            _processes = LoadProcessesFromDatabase();
         }
 
         public IEnumerable<Process> Processes => _processes;
