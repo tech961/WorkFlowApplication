@@ -12,7 +12,7 @@
         public int WorkSheetPermissionItemID { get; set; }
         public string ServiceAssemblyName { get; set; }
         public string GetMethodName { get; set; }
-        public string LatinName { get; set; } // Computed column
+        public string LatinName { get; set; }
         public bool ClientCenter { get; set; } = false;
         public bool Company { get; set; } = false;
         public bool IsGoverment { get; set; } = false;

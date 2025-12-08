@@ -18,7 +18,7 @@ namespace HrgWeb.Business.WorkflowEngine.Runtime
 
         public override NodeContinuation Continue(ProcessInstance instance, IInternalExecutionContext context, ProcessExecutionStep currentStep, IReadOnlyList<ProcessExecutionStep> previousSteps)
         {
-            currentStep.IsCompleted = true;
+            currentStep.Done = true;
             currentStep.CompletedOnUtc = Clock.UtcNow;
             return new NodeContinuation
             {

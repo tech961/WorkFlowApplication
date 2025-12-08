@@ -70,7 +70,7 @@ namespace HrgWeb.Business.WorkflowEngine.Runtime
             var step = new ProcessExecutionStep
             {
                 ID = Guid.NewGuid(),
-                ProcessInstanceId = instance.ID,
+                ProcessInstanceID = instance.ID,
                 ProcessID = instance.ProcessID,
                 ProcessNodeID = ID,
                 CreatedOnUtc = Clock.UtcNow,

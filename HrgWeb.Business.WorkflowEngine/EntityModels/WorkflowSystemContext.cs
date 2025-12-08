@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Globalization;
 using System.Linq;
 using HrgWeb.Business.Workflow;
 using HrgWeb.Business.WorkflowEngine.Context;
 using HrgWeb.Business.WorkflowEngine.DataModel;
 using HrgWeb.Business.WorkflowEngine.Runtime;
+using HrgWeb.Common.FW;
 
 namespace HrgWeb.Business.WorkflowEngine.EntityModels
 {
@@ -18,7 +20,7 @@ namespace HrgWeb.Business.WorkflowEngine.EntityModels
         {
 
             _dbContext = BussinessSetting.BusinessContext;
-            _processes = LoadProcessesFromDatabase();
+            //_processes = LoadProcessesFromDatabase();
         }
 
         public IEnumerable<Process> Processes => _processes;
@@ -37,20 +39,25 @@ namespace HrgWeb.Business.WorkflowEngine.EntityModels
             _processes.Add(process);
         }
 
-        public ProcessInstance CreateInstance(Process process)
+        public ProcessInstance CreateInstance(Process process, IInternalExecutionContext context)
         {
             if (process == null)
             {
                 throw new ArgumentNullException(nameof(process));
             }
 
+            if (context == null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
             var instanceEntity = new WF_Process_m
             {
                 ProcessMetaDataID = process.ID,
-                VoucherRowID = process.VoucherKindID,
+                VoucherRowID = context.Voucher.ID,
                 Closed = false,
                 RegUserID = process.RegUserID,
-                RegDate = DateTime.UtcNow.ToString("O", CultureInfo.InvariantCulture),
+                RegDate = ServerTime.PersianNow().ToStandardDateTime(),
                 RegCompanyID = process.RegCompanyID
             };
 
@@ -81,7 +88,7 @@ namespace HrgWeb.Business.WorkflowEngine.EntityModels
             var entity = new WF_ProcessExecutionStep_m
             {
                 ID = step.ID,
-                ProcessID = step.ProcessInstanceId,
+                ProcessID = step.ProcessInstanceID,
                 ProcessNodeID = step.ProcessNodeID,
                 PathID = step.PathID,
                 Done = step.Done,
@@ -90,9 +97,9 @@ namespace HrgWeb.Business.WorkflowEngine.EntityModels
                 PreviousExecutionStepID = string.Join(",", step.PreviousStepIds ?? Array.Empty<Guid>()),
                 Data = step.Data,
                 RegUserID = step.RegUserID,
-                RegDate = step.RegDate.ToString("O", CultureInfo.InvariantCulture),
+                RegDate = ServerTime.PersianNow().ToStandardDateTime(),
                 ModifyUserID = step.ModifyUserID,
-                ModifyDate = step.ModifyDate?.ToString("O", CultureInfo.InvariantCulture),
+                ModifyDate = ServerTime.PersianNow().ToStandardDateTime(),
                 RegCompanyID = step.RegCompanyID
             };
 
@@ -104,7 +111,8 @@ namespace HrgWeb.Business.WorkflowEngine.EntityModels
 
         public ProcessExecutionStep GetStep(Guid stepId)
         {
-            WF_ProcessExecutionStep_m step = _dbContext.WF_ProcessExecutionStep_m.SingleOrDefault(record => record.ID == stepId);
+            WF_ProcessExecutionStep_m step = _dbContext.WF_ProcessExecutionStep_m
+                .Include(x=>x.MD_ProcessNode_m).SingleOrDefault(record => record.ID == stepId);
             if (step == null)
             {
                 throw new InvalidOperationException($"Execution step '{stepId}' was not found.");
@@ -134,16 +142,16 @@ namespace HrgWeb.Business.WorkflowEngine.EntityModels
                 throw new InvalidOperationException($"Execution step '{step.ID}' was not found for update.");
             }
 
-            entity.Done = step.IsCompleted;
+            entity.Done = step.Done;
             entity.DoneDateTime = step.DoneDateTime ?? step.CompletedOnUtc?.Ticks;
             entity.PreviousExecutionStepID = string.Join(",", step.PreviousStepIds ?? Array.Empty<Guid>());
             entity.Data = step.Data;
             entity.ModifyUserID = step.ModifyUserID;
-            entity.ModifyDate = (step.ModifyDate ?? step.CompletedOnUtc)?.ToString("O", CultureInfo.InvariantCulture);
+            entity.ModifyDate = ServerTime.PersianNow().ToStandardDateTime();
             entity.RegisterDateTime = step.RegisterDateTime;
             entity.PathID = step.PathID;
             entity.ProcessNodeID = step.ProcessNodeID;
-            entity.ProcessID = step.ProcessInstanceId;
+            entity.ProcessID = step.ProcessInstanceID;
 
             _dbContext.SaveChanges();
         }
@@ -151,6 +159,7 @@ namespace HrgWeb.Business.WorkflowEngine.EntityModels
         public IList<Process> LoadProcessesFromDatabase()
         {
             var processes = _dbContext.MD_Process_m
+                .Include(x => x.MD_ProcessNode_m)
                 .ToList();
 
             var result = new List<Process>();
@@ -171,6 +180,14 @@ namespace HrgWeb.Business.WorkflowEngine.EntityModels
             return MapProcess(process);
         }
 
+        public ProcessNode ProcessNode(int nodeID)
+        {
+            var node = _dbContext.MD_ProcessNode_m
+                .FirstOrDefault(x=>x.ID == nodeID);
+
+            return MapProcessNode(node);
+        }
+
         private Process MapProcess(MD_Process_m dbProcess)
         {
             var process = new Process
@@ -184,7 +201,7 @@ namespace HrgWeb.Business.WorkflowEngine.EntityModels
                 RegDate = ParseDate(dbProcess.RegDate) ?? DateTime.UtcNow,
                 ModifyUserID = dbProcess.ModifyUserID,
                 ModifyDate = ParseDate(dbProcess.ModifyDate),
-                RegCompanyID = dbProcess.RegCompanyID
+                RegCompanyID = dbProcess.RegCompanyID,
             };
 
             var nodeLookup = new Dictionary<int, ProcessNode>();
@@ -253,6 +270,11 @@ namespace HrgWeb.Business.WorkflowEngine.EntityModels
             if (dbNode.MD_UserTaskNode_m != null)
             {
                 node.Settings["registrationType"] = dbNode.MD_UserTaskNode_m.MD_UserTaskRegistrationType_h?.Name ?? string.Empty;
+
+                if (dbNode.MD_UserTaskNode_m.IsStartTask)
+                {
+                    node.Settings["IsStartTask"] = dbNode.MD_UserTaskNode_m?.IsStartTask.ToString() ?? string.Empty;
+                }
             }
 
             if (dbNode.MD_ServiceTaskNode_m != null)
@@ -309,7 +331,7 @@ namespace HrgWeb.Business.WorkflowEngine.EntityModels
                 ID = entity.ID,
                 ProcessID = entity.ProcessID,
                 ProcessNodeID = entity.ProcessNodeID,
-                ProcessInstanceId = entity.ProcessID,
+                ProcessInstanceID = entity.ProcessID,
                 PathID = entity.PathID,
                 Done = entity.Done,
                 RegisterDateTime = entity.RegisterDateTime,
@@ -322,7 +344,6 @@ namespace HrgWeb.Business.WorkflowEngine.EntityModels
                 RegCompanyID = entity.RegCompanyID,
                 CreatedOnUtc = entity.RegisterDateTime > 0 ? new DateTime(entity.RegisterDateTime, DateTimeKind.Utc) : DateTime.MinValue,
                 CompletedOnUtc = entity.DoneDateTime.HasValue ? new DateTime(entity.DoneDateTime.Value, DateTimeKind.Utc) : (DateTime?)null,
-                IsCompleted = entity.Done
             };
 
             if (!string.IsNullOrWhiteSpace(entity.PreviousExecutionStepID))

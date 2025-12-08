@@ -11,35 +11,11 @@ namespace HrgWeb.Business.WorkflowEngine.EntityModels
 
         public int ProcessNodeID { get; set; }
 
-        public int ProcessInstanceId { get; set; }
-
-        public int NodeId
-        {
-            get => ProcessNodeID;
-            set => ProcessNodeID = value;
-        }
+        public int ProcessInstanceID { get; set; }
 
         public Guid PathID { get; set; }
 
-        public Guid Id
-        {
-            get => ID;
-            set => ID = value;
-        }
-
-        public Guid PathId
-        {
-            get => PathID;
-            set => PathID = value;
-        }
-
         public bool Done { get; set; }
-
-        public bool IsCompleted
-        {
-            get => Done;
-            set => Done = value;
-        }
 
         public long RegisterDateTime { get; set; }
 

@@ -13,7 +13,6 @@ namespace HrgWeb.Business.WorkflowEngine.EntityModels
         public int? NextProcessNodeID { get; set; }
         public string DesignerLocation { get; set; }
         public string DesignerLinkPath { get; set; }
-
         public Process Process { get; set; }
         public ProcessNode NextProcessNode { get; set; }
         public ProcessNodeKind NodeKind { get; set; }

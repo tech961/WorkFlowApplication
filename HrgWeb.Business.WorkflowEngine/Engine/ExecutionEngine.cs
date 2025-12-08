@@ -18,10 +18,10 @@ namespace HrgWeb.Business.WorkflowEngine.Engine
         private readonly WorkflowSystemContext _context;
         private readonly IClock _clock;
         private readonly TimerScheduler _scheduler;
-        private readonly IDictionary<int, ProcessModel> _processesByVoucherKind;
+        private readonly IDictionary<int, List<ProcessModel>> _processesByVoucherKind;
         private readonly IDictionary<int, ProcessModel> _processesById;
-        private readonly IList<IWorkflowMetadataLoader> _metadataLoaders;
-        private readonly IList<IProcessNodeExecutionHandler> _executionHandlers;
+        private static readonly IList<IWorkflowMetadataLoader> _metadataLoaders = new List<IWorkflowMetadataLoader>();
+        private static readonly IList<IProcessNodeExecutionHandler> _executionHandlers = new List<IProcessNodeExecutionHandler>();
         private IExpressionEvaluator _expressionEvaluator;
         private IWorkflowLogger _logger;
 
@@ -30,10 +30,8 @@ namespace HrgWeb.Business.WorkflowEngine.Engine
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _clock = clock ?? throw new ArgumentNullException(nameof(clock));
             _scheduler = new TimerScheduler(clock);
-            _processesByVoucherKind = new Dictionary<int, ProcessModel>();
+            _processesByVoucherKind = new Dictionary<int, List<ProcessModel>>();
             _processesById = new Dictionary<int, ProcessModel>();
-            _metadataLoaders = new List<IWorkflowMetadataLoader>();
-            _executionHandlers = new List<IProcessNodeExecutionHandler>();
         }
 
         public void RegisterMetadataLoader(IWorkflowMetadataLoader loader)
@@ -78,13 +76,16 @@ namespace HrgWeb.Business.WorkflowEngine.Engine
 
             foreach (Process definition in definitions)
             {
-                if (!definition.Active)
+                ProcessModel model = CompileProcess(definition);
+                if (!_processesByVoucherKind.TryGetValue(definition.VoucherKindID, out List<ProcessModel> list))
                 {
-                    continue;
+                    list = new List<ProcessModel>();
+                    _processesByVoucherKind.Add(definition.VoucherKindID, list);
                 }
 
-                ProcessModel model = CompileProcess(definition);
-                _processesByVoucherKind[definition.VoucherKindID] = model;
+                list.RemoveAll(existing => existing.Definition.Version == definition.Version);
+                list.Add(model);
+                list.Sort((left, right) => left.Definition.Version.CompareTo(right.Definition.Version));
                 _processesById[definition.ID] = model;
 
                 foreach (IWorkflowMetadataLoader loader in _metadataLoaders)
@@ -98,16 +99,19 @@ namespace HrgWeb.Business.WorkflowEngine.Engine
         {
             var activeProcess = _context.ActiveProcess(voucherKind, context);
 
-            if (activeProcess == null)
-            {
-                throw new InvalidOperationException($"No process definitions were loaded for voucher kind {voucherKind}.");
-            }
-
             _processesByVoucherKind.Clear();
             _processesById.Clear();
 
             ProcessModel model = CompileProcess(activeProcess);
-            _processesByVoucherKind[activeProcess.VoucherKindID] = model;
+            if (!_processesByVoucherKind.TryGetValue(activeProcess.VoucherKindID, out List<ProcessModel> list))
+            {
+                list = new List<ProcessModel>();
+                _processesByVoucherKind.Add(activeProcess.VoucherKindID, list);
+            }
+
+            list.RemoveAll(existing => existing.Definition.Version == activeProcess.Version);
+            list.Add(model);
+            list.Sort((left, right) => left.Definition.Version.CompareTo(right.Definition.Version));
             _processesById[activeProcess.ID] = model;
 
             foreach (IWorkflowMetadataLoader loader in _metadataLoaders)
@@ -116,45 +120,52 @@ namespace HrgWeb.Business.WorkflowEngine.Engine
             }
         }
 
-
-
         public void StartProcessInstance(int voucherKind, IInternalExecutionContext context)
         {
             LoadProcessDefinitions(voucherKind, context);
-            ProcessModel process = GetActiveProcessModel(voucherKind);
-            ProcessInstance instance = _context.CreateInstance(process.Definition);
+            ProcessModel process = GetActiveProcessModel(voucherKind, context);
+            ProcessInstance instance = _context.CreateInstance(process.Definition, context);
             ExecuteNode(process, instance, process.StartNode, context, previousStep: null);
         }
 
         public IEnumerable<UserTaskNodeModel> GetPendingUserTasks(int voucherId)
         {
-            EnsureProcessDefinitionsLoaded();
-            return _context.ExecutionSteps
-                .Where(step => !step.IsCompleted)
-                .Select(step => new
+            var processInstance = _context.ProcessInstances
+                .FirstOrDefault(x => x.VoucherID == voucherId);
+
+            if (processInstance == null)
+                return Enumerable.Empty<UserTaskNodeModel>();
+
+            var steps = _context.ExecutionSteps
+                .Where(x => x.ProcessID == processInstance.ID && !x.Done)
+                .ToList();
+
+            var result = new List<UserTaskNodeModel>();
+
+            foreach (var step in steps)
+            {
+                var processNode = _context.ProcessNode(step.ProcessNodeID);
+
+                result.Add(new UserTaskNodeModel(processNode, _clock));
+
+
+                foreach (IWorkflowMetadataLoader loader in _metadataLoaders)
                 {
-                    Step = step,
-                    Instance = _context.GetInstance(step.ProcessInstanceId)
-                })
-                .Where(pair => pair.Instance.VoucherID == voucherId)
-                .Select(pair => new
-                {
-                    pair.Step,
-                    pair.Instance,
-                    Process = _processesById[pair.Instance.ProcessId]
-                })
-                .Where(pair => pair.Process.GetNode(pair.Step.NodeId) is UserTaskNodeModel)
-                .Select(pair => (UserTaskNodeModel)pair.Process.GetNode(pair.Step.NodeId))
-                .Distinct();
+                    loader.LoadMetadata(processNode);
+                }
+
+            }
+
+
+            return result;
         }
 
         public void CompleteUserTask(Guid stepId, IInternalExecutionContext context)
         {
-            EnsureProcessDefinitionsLoaded();
             ProcessExecutionStep step = _context.GetStep(stepId);
-            ProcessInstance instance = _context.GetInstance(step.ProcessInstanceId);
-            ProcessModel process = _processesById[instance.ProcessId];
-            ProcessNodeModel node = process.GetNode(step.NodeId);
+            ProcessInstance instance = _context.GetInstance(step.ProcessInstanceID);
+            ProcessModel process = _processesById[instance.ProcessID];
+            ProcessNodeModel node = process.GetNode(step.ProcessNodeID);
             if (!(node is UserTaskNodeModel))
             {
                 throw new InvalidOperationException("The specified step does not belong to a user task node.");
@@ -230,14 +241,20 @@ namespace HrgWeb.Business.WorkflowEngine.Engine
             }
         }
 
-        private ProcessModel GetActiveProcessModel(int voucherKind)
+        private ProcessModel GetActiveProcessModel(int voucherKind, IInternalExecutionContext context)
         {
-            if (!_processesByVoucherKind.TryGetValue(voucherKind, out ProcessModel processModel))
+            if (!_processesByVoucherKind.TryGetValue(voucherKind, out List<ProcessModel> list) || list.Count == 0)
+            {
+                throw new InvalidOperationException($"No process definitions were loaded for voucher kind {voucherKind}.");
+            }
+
+            ProcessModel activeProcess = list.LastOrDefault(model => model.Definition.Active);
+            if (activeProcess == null)
             {
                 throw new InvalidOperationException($"No active process definition was found for voucher kind {voucherKind}.");
             }
 
-            return processModel;
+            return activeProcess;
         }
 
         private void ExecuteNode(ProcessModel process, ProcessInstance instance, ProcessNodeModel node, IInternalExecutionContext context, ProcessExecutionStep previousStep = null)
@@ -250,23 +267,23 @@ namespace HrgWeb.Business.WorkflowEngine.Engine
             ProcessExecutionStep step = node.CreateStep(instance, context);
             if (previousStep != null)
             {
-                step.PreviousStepIds.Add(previousStep.Id);
-                step.PathId = previousStep.PathId;
+                step.PreviousStepIds.Add(previousStep.ID);
+                step.PathID = previousStep.PathID;
             }
 
             step.CreatedOnUtc = _clock.UtcNow;
             _context.AddStep(step);
-            context.StepId = step.Id;
+            context.StepId = step.ID;
 
-            foreach (IProcessNodeExecutionHandler handler in _executionHandlers)
-            {
-                handler.Execute(context, node);
-            }
+            //foreach (IProcessNodeExecutionHandler handler in _executionHandlers)
+            //{
+            //    handler.Execute(context, node);
+            //}
 
             NodeContinuation continuation = node.Continue(instance, context, step, new ProcessExecutionStep[0]);
-            if (continuation.StepCompleted && !step.IsCompleted)
+            if (continuation.StepCompleted && !step.Done)
             {
-                step.IsCompleted = true;
+                step.Done = true;
                 step.CompletedOnUtc = _clock.UtcNow;
             }
 
@@ -295,15 +312,14 @@ namespace HrgWeb.Business.WorkflowEngine.Engine
             DateTime dueDate = timerNode.EvaluateDueDate(context);
             var request = new TimerRequest
             {
-                StepId = step.Id,
-                ProcessInstanceId = instance.Id,
+                StepId = step.ID,
+                ProcessInstanceId = instance.ID,
                 NodeId = timerNode.ID,
                 ExecuteAtUtc = dueDate,
                 UserId = context.UserId,
                 CompanyId = context.CompanyId,
                 FiscalYearId = context.FiscalYearId,
                 VoucherId = context.Voucher.ID,
-                VoucherKind = _processesById[instance.ProcessId].Definition.VoucherKindID,
                 WorkflowDataList = context.WorkflowDataList != null
                     ? context.WorkflowDataList.Select(item => new WorkflowMetadata(item.ID)).ToArray()
                     : new WorkflowMetadata[0]
@@ -313,10 +329,9 @@ namespace HrgWeb.Business.WorkflowEngine.Engine
 
         private void ResumeTimer(TimerRequest request)
         {
-            EnsureProcessDefinitionsLoaded();
             ProcessExecutionStep step = _context.GetStep(request.StepId);
             ProcessInstance instance = _context.GetInstance(request.ProcessInstanceId);
-            ProcessModel process = _processesById[instance.ProcessId];
+            ProcessModel process = _processesById[instance.ProcessID];
             ProcessNodeModel node = process.GetNode(request.NodeId);
             if (!(node is TimerNodeModel))
             {
@@ -340,7 +355,7 @@ namespace HrgWeb.Business.WorkflowEngine.Engine
 
         private void FinalizeWaitingNode(ProcessModel process, ProcessInstance instance, ProcessNodeModel node, ProcessExecutionStep step, IInternalExecutionContext context)
         {
-            step.IsCompleted = true;
+            step.Done = true;
             step.CompletedOnUtc = _clock.UtcNow;
             ProcessNodeModel nextNode = ResolveNextNode(node, context);
             _context.UpdateStep(step);
