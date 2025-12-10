@@ -46,7 +46,7 @@ namespace HrgWeb.Business.WorkflowEngine.Runtime
                 }
             }
 
-            return UserTaskRegistrationType.None;
+            return UserTaskRegistrationType.BySystem;
         }
 
         private static bool ReadIsStartTask(ProcessNode definition)

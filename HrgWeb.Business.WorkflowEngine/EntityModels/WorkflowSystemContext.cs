@@ -112,7 +112,7 @@ namespace HrgWeb.Business.WorkflowEngine.EntityModels
         public ProcessExecutionStep GetStep(Guid stepId)
         {
             WF_ProcessExecutionStep_m step = _dbContext.WF_ProcessExecutionStep_m
-                .Include(x=>x.MD_ProcessNode_m).SingleOrDefault(record => record.ID == stepId);
+                .Include(x => x.MD_ProcessNode_m).SingleOrDefault(record => record.ID == stepId);
             if (step == null)
             {
                 throw new InvalidOperationException($"Execution step '{stepId}' was not found.");
@@ -171,6 +171,24 @@ namespace HrgWeb.Business.WorkflowEngine.EntityModels
             return result;
         }
 
+        public IList<Process> ProcessByID(int id)
+        {
+            var processes = _dbContext.MD_Process_m
+                .Where(x => x.ID == id)
+                .Include(x => x.MD_ProcessNode_m)
+                .ToList();
+
+            var result = new List<Process>();
+            foreach (MD_Process_m dbProcess in processes)
+            {
+                result.Add(MapProcess(dbProcess));
+            }
+
+            return result;
+        }
+
+
+
         public Process ActiveProcess(int voucherId, IInternalExecutionContext context)
         {
             var process = _dbContext.MD_Process_m
@@ -183,7 +201,7 @@ namespace HrgWeb.Business.WorkflowEngine.EntityModels
         public ProcessNode ProcessNode(int nodeID)
         {
             var node = _dbContext.MD_ProcessNode_m
-                .FirstOrDefault(x=>x.ID == nodeID);
+                .FirstOrDefault(x => x.ID == nodeID);
 
             return MapProcessNode(node);
         }
@@ -359,7 +377,6 @@ namespace HrgWeb.Business.WorkflowEngine.EntityModels
 
             return step;
         }
-
         private static DateTime? ParseDate(string dateValue)
         {
             if (string.IsNullOrWhiteSpace(dateValue))

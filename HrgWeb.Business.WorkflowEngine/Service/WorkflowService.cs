@@ -96,6 +96,7 @@ namespace HrgWeb.Business.WorkflowEngine.Service
             _engine.StartProcessInstance(voucherKind, internalContext);
         }
 
+
         public IEnumerable<UserTaskNodeModel> GetNextUserTasks(IExecutionContext executionContext)
         {
             if (executionContext == null)
@@ -103,13 +104,29 @@ namespace HrgWeb.Business.WorkflowEngine.Service
                 throw new ArgumentNullException(nameof(executionContext));
             }
 
-            IWorkflowVoucher voucher = executionContext.Voucher;
-            if (voucher == null)
+            IInternalExecutionContext internalContext = EnsureInternalContext(executionContext);
+            if (internalContext.Voucher == null)
             {
                 throw new InvalidOperationException("The execution context must provide a workflow voucher.");
             }
 
-            return _engine.GetPendingUserTasks(voucher.ID);
+            if (_voucherLoader != null)
+            {
+                //IWorkflowVoucher voucher = _voucherLoader.GetWorkflowVoucher(internalContext.Voucher.ID, internalContext.Voucher.Kind);
+                //internalContext = new ExecutionContext()
+                //{
+                //    UserId = internalContext.UserId,
+                //    WorkflowData = internalContext.WorkflowData,
+                //    WorkflowDataList = internalContext.WorkflowDataList,
+                //    StepId = internalContext.StepId,
+                //    SimulationMode = internalContext.SimulationMode,
+                //    CompanyId = internalContext.CompanyId,
+                //    FiscalYearId = internalContext.FiscalYearId,
+                //    Voucher = voucher
+                //};
+            }
+
+            return _engine.GetPendingUserTasks(internalContext);
         }
 
         public void ExecuteUserTask(IExecutionContext executionContext)

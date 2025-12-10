@@ -7,6 +7,8 @@ using HrgWeb.Business.WorkflowEngine.Models;
 using HrgWeb.Business.WorkflowEngine.Runtime;
 using HrgWeb.Business.WorkflowEngine.Service;
 using HrgWeb.Business.WorkflowEngine.Support;
+using HrgWeb.Common.Logging;
+using HrgWeb.Infrastructure.Enums;
 
 namespace HrgWeb.Business.WorkflowEngine.Engine
 {
@@ -124,54 +126,115 @@ namespace HrgWeb.Business.WorkflowEngine.Engine
         {
             LoadProcessDefinitions(voucherKind, context);
             ProcessModel process = GetActiveProcessModel(voucherKind, context);
+
             ProcessInstance instance = _context.CreateInstance(process.Definition, context);
+
             ExecuteNode(process, instance, process.StartNode, context, previousStep: null);
         }
 
-        public IEnumerable<UserTaskNodeModel> GetPendingUserTasks(int voucherId)
+        public IEnumerable<UserTaskNodeModel> GetPendingUserTasks(IInternalExecutionContext context)
         {
+            if (context == null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
+            if (context.Voucher == null)
+            {
+                throw new InvalidOperationException("The execution context must provide a workflow voucher.");
+            }
             var processInstance = _context.ProcessInstances
-                .FirstOrDefault(x => x.VoucherID == voucherId);
+                .FirstOrDefault(x => x.VoucherID == context.Voucher.ID);
+
+            var currentProcess = _context.ProcessByID(processInstance.ProcessID);
+
+            LoadProcessDefinitions(currentProcess);
+
 
             if (processInstance == null)
                 return Enumerable.Empty<UserTaskNodeModel>();
 
-            var steps = _context.ExecutionSteps
+            var currentStep = _context.ExecutionSteps
                 .Where(x => x.ProcessID == processInstance.ID && !x.Done)
-                .ToList();
+                .OrderByDescending(x => x.RegisterDateTime)
+                .FirstOrDefault();
 
-            var result = new List<UserTaskNodeModel>();
-
-            foreach (var step in steps)
+            if (currentStep != null)
             {
-                var processNode = _context.ProcessNode(step.ProcessNodeID);
+                ProcessModel process = _processesById[processInstance.ProcessID];
+                ProcessNodeModel node = process.GetNode(currentStep.ProcessNodeID);
 
-                result.Add(new UserTaskNodeModel(processNode, _clock));
-
-
-                foreach (IWorkflowMetadataLoader loader in _metadataLoaders)
+                var executionContext = new ExecutionContext
                 {
-                    loader.LoadMetadata(processNode);
+                    UserId = currentStep.RegUserID,
+                    CompanyId = currentStep.RegCompanyID,
+                    FiscalYearId = 0,
+                    Voucher = new WorkflowVoucher(context.Voucher.ID, string.Empty, string.Empty, process.Definition.VoucherKindID),
+                    StepId = currentStep.ID
+                };
+
+                NodeContinuation continuation = node.Continue(processInstance, executionContext, currentStep, new ProcessExecutionStep[0]);
+                ProcessNodeModel nextNode = continuation.NextNode ?? ResolveNextNode(node, executionContext);
+
+                //_context.UpdateStep(currentStep);
+
+                //if (continuation.WaitForExternalSignal)
+                //{
+                //    if (node is TimerNodeModel timerNode)
+                //    {
+                //        ScheduleTimer(processInstance, timerNode, currentStep, executionContext);
+                //    }
+                //}
+                //else if (nextNode != null)
+                //{
+                //    ExecuteNode(process, processInstance, nextNode, executionContext, currentStep);
+                //}
+
+
+                var processModel = _processesById[processInstance.ProcessID];
+                var result = new List<UserTaskNodeModel>();
+
+
+                if (nextNode is UserTaskNodeModel userTaskNode)
+                {
+                    result.Add(userTaskNode);
+
+                    foreach (IWorkflowMetadataLoader loader in _metadataLoaders)
+                    {
+                        loader.LoadMetadata(new[] { userTaskNode });
+                    }
                 }
+
+                return result;
 
             }
 
-
-            return result;
+            return null;
         }
+
 
         public void CompleteUserTask(Guid stepId, IInternalExecutionContext context)
         {
             ProcessExecutionStep step = _context.GetStep(stepId);
-            ProcessInstance instance = _context.GetInstance(step.ProcessInstanceID);
-            ProcessModel process = _processesById[instance.ProcessID];
+            ProcessInstance instance = _context.GetInstance(step.ProcessID);
+
+            ProcessModel process = LoadProcess(instance.ProcessID);
             ProcessNodeModel node = process.GetNode(step.ProcessNodeID);
+
+
+            NodeContinuation continuation = node.Continue(instance, context, step, new ProcessExecutionStep[0]);
+            ProcessNodeModel nextNode = continuation.NextNode ?? ResolveNextNode(node, context);
+
+
             if (!(node is UserTaskNodeModel))
             {
                 throw new InvalidOperationException("The specified step does not belong to a user task node.");
             }
 
-            FinalizeWaitingNode(process, instance, node, step, context);
+
+            Executtion(process, instance, nextNode, context);
+
+            //FinalizeWaitingNode(process, instance, node, step, context);
         }
 
         public void ProcessDueTimers(DateTime? now = null)
@@ -259,10 +322,7 @@ namespace HrgWeb.Business.WorkflowEngine.Engine
 
         private void ExecuteNode(ProcessModel process, ProcessInstance instance, ProcessNodeModel node, IInternalExecutionContext context, ProcessExecutionStep previousStep = null)
         {
-            foreach (IProcessNodeExecutionHandler handler in _executionHandlers)
-            {
-                handler.Register(context, node);
-            }
+            Logger.Error($"ExecuteNode Run , step-> {node.ID}", enmSubSystems.Workflow);
 
             ProcessExecutionStep step = node.CreateStep(instance, context);
             if (previousStep != null)
@@ -271,9 +331,15 @@ namespace HrgWeb.Business.WorkflowEngine.Engine
                 step.PathID = previousStep.PathID;
             }
 
-            step.CreatedOnUtc = _clock.UtcNow;
+
             _context.AddStep(step);
             context.StepId = step.ID;
+
+
+            foreach (IProcessNodeExecutionHandler handler in _executionHandlers)
+            {
+                handler.Register(context, node);
+            }
 
             //foreach (IProcessNodeExecutionHandler handler in _executionHandlers)
             //{
@@ -284,12 +350,14 @@ namespace HrgWeb.Business.WorkflowEngine.Engine
             if (continuation.StepCompleted && !step.Done)
             {
                 step.Done = true;
-                step.CompletedOnUtc = _clock.UtcNow;
+                //step.CompletedOnUtc = _clock.UtcNow;
             }
 
             ProcessNodeModel nextNode = continuation.NextNode ?? ResolveNextNode(node, context);
 
             _context.UpdateStep(step);
+
+            Logger.Error($"ExecuteNode Run , updateStep-> {node.ID}", enmSubSystems.Workflow);
 
             if (continuation.WaitForExternalSignal)
             {
@@ -306,6 +374,66 @@ namespace HrgWeb.Business.WorkflowEngine.Engine
                 ExecuteNode(process, instance, nextNode, context, step);
             }
         }
+
+
+
+        private void Executtion(ProcessModel process, ProcessInstance instance, ProcessNodeModel node, IInternalExecutionContext context, ProcessExecutionStep previousStep = null)
+        {
+            Logger.Error($"ExecuteNode Run , step-> {node.ID}", enmSubSystems.Workflow);
+
+            ProcessExecutionStep step = node.CreateStep(instance, context);
+            if (previousStep != null)
+            {
+                step.PreviousStepIds.Add(previousStep.ID);
+                step.PathID = previousStep.PathID;
+            }
+
+
+            _context.AddStep(step);
+            context.StepId = step.ID;
+
+
+            foreach (IProcessNodeExecutionHandler handler in _executionHandlers)
+            {
+                handler.Register(context, node);
+            }
+
+
+
+            foreach (IProcessNodeExecutionHandler handler in _executionHandlers)
+            {
+                handler.Execute(context, node);
+            }
+
+            NodeContinuation continuation = node.Continue(instance, context, step, new ProcessExecutionStep[0]);
+            if (continuation.StepCompleted && !step.Done)
+            {
+                step.Done = true;
+                //step.CompletedOnUtc = _clock.UtcNow;
+            }
+
+            ProcessNodeModel nextNode = continuation.NextNode ?? ResolveNextNode(node, context);
+
+            _context.UpdateStep(step);
+
+            Logger.Error($"ExecuteNode Run , updateStep-> {node.ID}", enmSubSystems.Workflow);
+
+            if (continuation.WaitForExternalSignal)
+            {
+                if (node is TimerNodeModel timerNode)
+                {
+                    ScheduleTimer(instance, timerNode, step, context);
+                }
+
+                return;
+            }
+
+            if (nextNode != null)
+            {
+                ExecuteNode(process, instance, nextNode, context, step);
+            }
+        }
+
 
         private void ScheduleTimer(ProcessInstance instance, TimerNodeModel timerNode, ProcessExecutionStep step, IInternalExecutionContext context)
         {
@@ -356,7 +484,7 @@ namespace HrgWeb.Business.WorkflowEngine.Engine
         private void FinalizeWaitingNode(ProcessModel process, ProcessInstance instance, ProcessNodeModel node, ProcessExecutionStep step, IInternalExecutionContext context)
         {
             step.Done = true;
-            step.CompletedOnUtc = _clock.UtcNow;
+            //step.CompletedOnUtc = _clock.UtcNow;
             ProcessNodeModel nextNode = ResolveNextNode(node, context);
             _context.UpdateStep(step);
             if (nextNode != null)
@@ -492,6 +620,23 @@ namespace HrgWeb.Business.WorkflowEngine.Engine
             {
                 LoadProcessDefinitions(_context.Processes);
             }
+        }
+
+        private ProcessModel LoadProcess(int processId)
+        {
+            Process process = _context.ProcessByID(processId).FirstOrDefault();
+            if (process == null)
+            {
+                return null;
+            }
+            ProcessModel model = CompileProcess(process);
+
+            foreach (IWorkflowMetadataLoader loader in _metadataLoaders)
+            {
+                loader.LoadMetadata(model.Nodes);
+            }
+
+            return model;
         }
 
     }
