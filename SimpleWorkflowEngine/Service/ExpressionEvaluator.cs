@@ -214,43 +214,51 @@ namespace HrgWeb.Business.WorkflowEngine.Service
                 return false;
             }
 
-            if (string.Equals(name, "UserId", StringComparison.OrdinalIgnoreCase))
+            string mappedName = MapAlias(context, name);
+
+            if (string.Equals(mappedName, "UserId", StringComparison.OrdinalIgnoreCase))
             {
                 value = context.UserId;
                 return true;
             }
 
-            if (string.Equals(name, "CompanyId", StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(mappedName, "CompanyId", StringComparison.OrdinalIgnoreCase))
             {
                 value = context.CompanyId;
                 return true;
             }
 
-            if (string.Equals(name, "FiscalYearId", StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(mappedName, "FiscalYearId", StringComparison.OrdinalIgnoreCase))
             {
                 value = context.FiscalYearId;
                 return true;
             }
 
-            if (string.Equals(name, "VoucherId", StringComparison.OrdinalIgnoreCase) || string.Equals(name, "Voucher.Id", StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(mappedName, "VoucherId", StringComparison.OrdinalIgnoreCase) || string.Equals(mappedName, "Voucher.Id", StringComparison.OrdinalIgnoreCase))
             {
                 value = context.Voucher != null ? (object)context.Voucher.ID : null;
                 return true;
             }
 
-            if (string.Equals(name, "VoucherKind", StringComparison.OrdinalIgnoreCase) || string.Equals(name, "Voucher.Kind", StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(mappedName, "VoucherKind", StringComparison.OrdinalIgnoreCase) || string.Equals(mappedName, "Voucher.Kind", StringComparison.OrdinalIgnoreCase))
             {
                 value = context.Voucher != null ? (object)context.Voucher.Kind : null;
                 return true;
             }
 
-            if (string.Equals(name, "StepId", StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(mappedName, "Number", StringComparison.OrdinalIgnoreCase) || string.Equals(mappedName, "Voucher.Number", StringComparison.OrdinalIgnoreCase))
+            {
+                value = context.Voucher != null ? (object)context.Voucher.Number : null;
+                return true;
+            }
+
+            if (string.Equals(mappedName, "StepId", StringComparison.OrdinalIgnoreCase))
             {
                 value = context.StepId;
                 return true;
             }
 
-            if (context.Items != null && TryGetDictionaryValue(context.Items, name, out value))
+            if (context.Items != null && TryGetDictionaryValue(context.Items, mappedName, out value))
             {
                 return true;
             }
@@ -263,6 +271,59 @@ namespace HrgWeb.Business.WorkflowEngine.Service
                     {
                         value = metadata.Value;
                         return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        private static string MapAlias(IExecutionContext context, string name)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                return name;
+            }
+
+            if (TryResolveAliasFromItems(context, name, out string mapped))
+            {
+                return mapped;
+            }
+
+            if (string.Equals(name, "شماره", StringComparison.OrdinalIgnoreCase))
+            {
+                return "Number";
+            }
+
+            return name;
+        }
+
+        private static bool TryResolveAliasFromItems(IExecutionContext context, string name, out string mapped)
+        {
+            mapped = null;
+
+            if (context?.Items == null)
+            {
+                return false;
+            }
+
+            foreach (KeyValuePair<string, object> item in context.Items)
+            {
+                IDictionary<string, string> aliasDictionary = item.Value as IDictionary<string, string>;
+                if (aliasDictionary != null)
+                {
+                    if (aliasDictionary.TryGetValue(name, out mapped))
+                    {
+                        return true;
+                    }
+
+                    foreach (KeyValuePair<string, string> alias in aliasDictionary)
+                    {
+                        if (string.Equals(alias.Key, name, StringComparison.OrdinalIgnoreCase))
+                        {
+                            mapped = alias.Value;
+                            return true;
+                        }
                     }
                 }
             }
