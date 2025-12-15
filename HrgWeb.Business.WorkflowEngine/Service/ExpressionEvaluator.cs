@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using HrgWeb.Business.WorkflowEngine.Runtime;
@@ -384,5 +384,52 @@ namespace HrgWeb.Business.WorkflowEngine.Service
             result = DateTime.MinValue;
             return false;
         }
+
+
+
+
+
+
+        //private string NormalizeFa(string s)
+        //{
+        //    if (string.IsNullOrWhiteSpace(s)) return "";
+
+        //    s = s.Trim();
+
+        //    s = s.Replace('ي', 'ی').Replace('ك', 'ک');
+
+        //    s = s.Replace("\u200C", " "); // ZWNJ
+        //    s = System.Text.RegularExpressions.Regex.Replace(s, @"\s+", " ");
+
+        //    s = System.Text.RegularExpressions.Regex.Replace(s, @"[^\p{L}\p{Nd}\s_]", "");
+
+        //    return s.Trim();
+        //}
+
+
+        //static string ConvertDbExpression<T>(string raw, IFieldResolver resolver)
+        //{
+        //    string result = System.Text.RegularExpressions.Regex.Replace(
+        //        raw,
+        //        @"\[(?<name>[^\]]+)\]",
+        //        m =>
+        //        {
+        //            var alias = m.Groups["name"].Value;
+        //            if (!resolver.TryResolve(typeof(T), alias, out var prop))
+        //                throw new InvalidOperationException($"فیلد ناشناخته در expression: [{alias}]");
+        //            return prop;
+        //        });
+
+        //    // 2) AND/OR
+        //    result = System.Text.RegularExpressions.Regex.Replace(result, @"\bAND\b", "&&", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+        //    result = System.Text.RegularExpressions.Regex.Replace(result, @"\bOR\b", "||", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+
+        //    // 3) = -> == (بدون خراب کردن >= <= != ==)
+        //    result = System.Text.RegularExpressions.Regex.Replace(result, @"(?<![<>=!])=(?![=])", "==");
+
+        //    return result;
+        //}
+
+
     }
 }

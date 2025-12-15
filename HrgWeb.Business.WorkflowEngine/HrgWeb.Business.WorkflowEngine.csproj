@@ -169,6 +169,7 @@
     <Compile Include="Runtime\UserTaskNodeModel.cs" />
     <Compile Include="Runtime\WorkflowMetadata.cs" />
     <Compile Include="Runtime\WorkflowVoucher.cs" />
+    <Compile Include="Service\DependencyResolver.cs" />
     <Compile Include="Service\ExpressionEvaluator.cs" />
     <Compile Include="Service\IExpressionEvaluator.cs" />
     <Compile Include="Service\IProcessNodeExecutionHandler.cs" />

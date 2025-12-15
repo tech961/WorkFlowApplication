@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using HrgWeb.Business.WorkflowEngine.DataModel;
@@ -26,6 +26,7 @@ namespace HrgWeb.Business.WorkflowEngine.Engine
         private static readonly IList<IProcessNodeExecutionHandler> _executionHandlers = new List<IProcessNodeExecutionHandler>();
         private IExpressionEvaluator _expressionEvaluator;
         private IWorkflowLogger _logger;
+        private readonly IFieldResolver _resolver;
 
         public ExecutionEngine(WorkflowSystemContext context, IClock clock)
         {
@@ -34,6 +35,8 @@ namespace HrgWeb.Business.WorkflowEngine.Engine
             _scheduler = new TimerScheduler(clock);
             _processesByVoucherKind = new Dictionary<int, List<ProcessModel>>();
             _processesById = new Dictionary<int, ProcessModel>();
+            _expressionEvaluator = new ExpressionEvaluator();
+            _resolver = new AttributeFieldResolver();
         }
 
         public void RegisterMetadataLoader(IWorkflowMetadataLoader loader)
@@ -164,31 +167,27 @@ namespace HrgWeb.Business.WorkflowEngine.Engine
                 ProcessModel process = _processesById[processInstance.ProcessID];
                 ProcessNodeModel node = process.GetNode(currentStep.ProcessNodeID);
 
+                foreach (IWorkflowMetadataLoader loader in _metadataLoaders)
+                {
+                    loader.LoadMetadata(new[] { node });
+                }
+
                 var executionContext = new ExecutionContext
                 {
                     UserId = currentStep.RegUserID,
                     CompanyId = currentStep.RegCompanyID,
                     FiscalYearId = 0,
-                    Voucher = new WorkflowVoucher(context.Voucher.ID, string.Empty, string.Empty, process.Definition.VoucherKindID),
+                    Voucher = context.Voucher,
                     StepId = currentStep.ID
                 };
 
                 NodeContinuation continuation = node.Continue(processInstance, executionContext, currentStep, new ProcessExecutionStep[0]);
                 ProcessNodeModel nextNode = continuation.NextNode ?? ResolveNextNode(node, executionContext);
 
-                //_context.UpdateStep(currentStep);
-
-                //if (continuation.WaitForExternalSignal)
-                //{
-                //    if (node is TimerNodeModel timerNode)
-                //    {
-                //        ScheduleTimer(processInstance, timerNode, currentStep, executionContext);
-                //    }
-                //}
-                //else if (nextNode != null)
-                //{
-                //    ExecuteNode(process, processInstance, nextNode, executionContext, currentStep);
-                //}
+                if (nextNode is ForkNodeModel)
+                {
+                    nextNode = ResolveNextNode(nextNode, executionContext);
+                }
 
 
                 var processModel = _processesById[processInstance.ProcessID];
@@ -203,7 +202,10 @@ namespace HrgWeb.Business.WorkflowEngine.Engine
                     {
                         loader.LoadMetadata(new[] { userTaskNode });
                     }
+
                 }
+
+
 
                 return result;
 
@@ -216,6 +218,12 @@ namespace HrgWeb.Business.WorkflowEngine.Engine
         public void CompleteUserTask(Guid stepId, IInternalExecutionContext context)
         {
             ProcessExecutionStep step = _context.GetStep(stepId);
+
+            if (step.Done)
+            {
+                throw new InvalidOperationException("این فرایند قبلا اجرا شده است.");
+            }
+
             ProcessInstance instance = _context.GetInstance(step.ProcessID);
 
             ProcessModel process = LoadProcess(instance.ProcessID);
@@ -226,11 +234,20 @@ namespace HrgWeb.Business.WorkflowEngine.Engine
             ProcessNodeModel nextNode = continuation.NextNode ?? ResolveNextNode(node, context);
 
 
+            if (nextNode is ForkNodeModel)
+            {
+                nextNode = ResolveNextNode(nextNode, context);
+            }
+
+
             if (!(node is UserTaskNodeModel))
             {
                 throw new InvalidOperationException("The specified step does not belong to a user task node.");
             }
 
+            step.Done = true;
+
+            _context.UpdateStep(step);
 
             Executtion(process, instance, nextNode, context);
 
@@ -299,6 +316,10 @@ namespace HrgWeb.Business.WorkflowEngine.Engine
                     return new ServiceTaskNodeModel(definition, _clock);
                 case ProcessNodeKind.Timer:
                     return new TimerNodeModel(definition, _clock);
+                case ProcessNodeKind.ForkNode:
+                    return new ForkNodeModel(definition, _clock);
+                case ProcessNodeKind.JoinNode:
+                    return new JoinNodeModel(definition, _clock);
                 default:
                     throw new InvalidOperationException(string.Format("Unsupported node kind '{0}'.", definition.NodeKind));
             }
@@ -512,7 +533,9 @@ namespace HrgWeb.Business.WorkflowEngine.Engine
                     continue;
                 }
 
-                if (_expressionEvaluator != null && _expressionEvaluator.EvaluateCondition(context, transition.Condition))
+                bool ok = DbExpressionEngine.Evaluate(context.Voucher, transition.Condition, _resolver);
+
+                if (ok)
                 {
                     return transition.Target;
                 }

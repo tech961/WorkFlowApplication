@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Globalization;
@@ -159,7 +159,12 @@ namespace HrgWeb.Business.WorkflowEngine.EntityModels
         public IList<Process> LoadProcessesFromDatabase()
         {
             var processes = _dbContext.MD_Process_m
-                .Include(x => x.MD_ProcessNode_m)
+                .Include(process => process.MD_ProcessNode_m.Select(node => node.MD_ForkNextProcessNode_m))
+                .Include(process => process.MD_ProcessNode_m.Select(node => node.MD_ProcessNodeKind_h))
+                .Include(process => process.MD_ProcessNode_m.Select(node => node.MD_UserTaskNode_m.MD_UserTaskRegistrationType_h))
+                .Include(process => process.MD_ProcessNode_m.Select(node => node.MD_TimerNode_m))
+                .Include(process => process.MD_ProcessNode_m.Select(node => node.MD_ServiceTaskNode_m))
+                .Include(process => process.MD_VoucherKind_h)
                 .ToList();
 
             var result = new List<Process>();
@@ -175,7 +180,12 @@ namespace HrgWeb.Business.WorkflowEngine.EntityModels
         {
             var processes = _dbContext.MD_Process_m
                 .Where(x => x.ID == id)
-                .Include(x => x.MD_ProcessNode_m)
+                .Include(process => process.MD_ProcessNode_m.Select(node => node.MD_ForkNextProcessNode_m))
+                .Include(process => process.MD_ProcessNode_m.Select(node => node.MD_ProcessNodeKind_h))
+                .Include(process => process.MD_ProcessNode_m.Select(node => node.MD_UserTaskNode_m.MD_UserTaskRegistrationType_h))
+                .Include(process => process.MD_ProcessNode_m.Select(node => node.MD_TimerNode_m))
+                .Include(process => process.MD_ProcessNode_m.Select(node => node.MD_ServiceTaskNode_m))
+                .Include(process => process.MD_VoucherKind_h)
                 .ToList();
 
             var result = new List<Process>();
@@ -189,13 +199,33 @@ namespace HrgWeb.Business.WorkflowEngine.EntityModels
 
 
 
-        public Process ActiveProcess(int voucherId, IInternalExecutionContext context)
+
+        public Process ActiveProcess(int voucherKindId, IInternalExecutionContext context)
         {
-            var process = _dbContext.MD_Process_m
-                .Where(x => x.VoucherKindID == voucherId && x.Active == true)
+            var dbProcess = _dbContext.MD_Process_m
+                .AsNoTracking()
+                .Where(p => p.Active && p.VoucherKindID == voucherKindId)
+                .Include(p => p.MD_VoucherKind_h)
                 .FirstOrDefault();
 
-            return MapProcess(process);
+            if (dbProcess == null)
+                return null;
+
+
+            var nodes = _dbContext.MD_ProcessNode_m
+                .AsNoTracking()
+                .Where(n => n.ProcessID == dbProcess.ID)
+                .Include(n => n.MD_ForkNode_m)
+                .Include(n => n.MD_ForkNextProcessNode_m)
+                .Include(n => n.MD_ProcessNodeKind_h)
+                .Include(n => n.MD_TimerNode_m)
+                .Include(n => n.MD_ServiceTaskNode_m)
+                .Include(n => n.MD_UserTaskNode_m.MD_UserTaskRegistrationType_h)
+                .ToList();
+
+            dbProcess.MD_ProcessNode_m = nodes;
+
+            return MapProcess(dbProcess);
         }
 
         public ProcessNode ProcessNode(int nodeID)
@@ -242,24 +272,28 @@ namespace HrgWeb.Business.WorkflowEngine.EntityModels
             foreach (MD_ProcessNode_m dbNode in dbProcess.MD_ProcessNode_m)
             {
                 ProcessNode node = nodeLookup[dbNode.ID];
-                foreach (MD_ForkNextProcessNode_m fork in dbNode.MD_ForkNextProcessNode_m)
-                {
-                    var transition = new ForkNextProcessNode
-                    {
-                        ID = fork.ID,
-                        ForkNodeID = fork.ForkNodeID,
-                        NextProcessNodeID = fork.NextProcessNodeID,
-                        Title = fork.Title,
-                        Condition = fork.Condition,
-                        DesignerLinkPath = fork.DesignerLinkPath,
-                        NextProcessNode = nodeLookup.TryGetValue(fork.NextProcessNodeID, out ProcessNode target) ? target : null
-                    };
 
-                    transition.ForkNode = new ForkNode()
+                if (dbNode.MD_ForkNode_m != null)
+                {
+                    foreach (MD_ForkNextProcessNode_m fork in dbNode.MD_ForkNode_m.MD_ForkNextProcessNode_m)
                     {
-                        ProcessNode = node
-                    };
-                    node.ForkNextProcessNodes.Add(transition);
+                        var transition = new ForkNextProcessNode
+                        {
+                            ID = fork.ID,
+                            ForkNodeID = fork.ForkNodeID,
+                            NextProcessNodeID = fork.NextProcessNodeID,
+                            Title = fork.Title,
+                            Condition = fork.Condition,
+                            DesignerLinkPath = fork.DesignerLinkPath,
+                            NextProcessNode = nodeLookup.TryGetValue(fork.NextProcessNodeID, out ProcessNode target) ? target : null
+                        };
+
+                        transition.ForkNode = new ForkNode()
+                        {
+                            ProcessNode = node
+                        };
+                        node.ForkNextProcessNodes.Add(transition);
+                    }
                 }
             }
 
