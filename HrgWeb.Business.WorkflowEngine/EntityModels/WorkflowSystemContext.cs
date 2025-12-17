@@ -321,7 +321,7 @@ namespace HrgWeb.Business.WorkflowEngine.EntityModels
 
             if (dbNode.MD_UserTaskNode_m != null)
             {
-                node.Settings["registrationType"] = dbNode.MD_UserTaskNode_m.MD_UserTaskRegistrationType_h?.Name ?? string.Empty;
+                node.Settings["registrationType"] = dbNode.MD_UserTaskNode_m.MD_UserTaskRegistrationType_h?.Remark ?? string.Empty;
 
                 if (dbNode.MD_UserTaskNode_m.IsStartTask)
                 {
